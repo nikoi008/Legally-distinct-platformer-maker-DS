@@ -1,0 +1,8 @@
+/include
+/libs
+.vscode/c_cpp_properties.json
+match.c
+build/Legally-distinct-platformer-maker-DS/source/main.c.o
+build/Legally-distinct-platformer-maker-DS/source/main.c.d
+build/Legally-distinct-platformer-maker-DS.elf
+build/Legally-distinct-platformer-maker-DS.map
