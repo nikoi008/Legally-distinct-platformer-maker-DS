@@ -1,27 +1,27 @@
 # SPDX-License-Identifier: CC0-1.0
+#
 # SPDX-FileContributor: Antonio Niño Díaz, 2023-2024
 
+export BLOCKSDS			?= /opt/wonderful/thirdparty/blocksds/core
+export BLOCKSDSEXT		?= /opt/wonderful/thirdparty/blocksds/external
 
-export WONDERFUL_TOOLCHAIN    := /c/msys64/opt/wonderful
-export BLOCKSDS               := $(WONDERFUL_TOOLCHAIN)/thirdparty/blocksds/core
-export BLOCKSDSEXT            := $(WONDERFUL_TOOLCHAIN)/thirdparty/blocksds/external
-
-
-ARM_NONE_EABI_PATH            := $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-arm-none-eabi/bin/
+export WONDERFUL_TOOLCHAIN	?= /opt/wonderful
+ARM_NONE_EABI_PATH	?= $(WONDERFUL_TOOLCHAIN)/toolchain/gcc-arm-none-eabi/bin/
 
 # User config
 # ===========
-NAME          := $(shell basename $(CURDIR))
-GAME_TITLE    := $(NAME).nds
-GAME_SUBTITLE := NightFox’s lib example
-GAME_AUTHOR   := github.com/knightfox75/nds_nflib
-GAME_ICON     := $(BLOCKSDS)/sys/icon.bmp
+
+NAME		:= $(shell basename $(CURDIR))
+GAME_TITLE	:= $(shell basename $(CURDIR)).nds
+GAME_SUBTITLE	:= NightFox's lib example
+GAME_AUTHOR	:= github.com/knightfox75/nds_nflib
+GAME_ICON	:= $(BLOCKSDS)/sys/icon.bmp
+
 # Source code paths
 # -----------------
 
 SOURCEDIRS	?= source
 NITROFSDIR	?= nitrofiles
-AUDIODIRS	:= audio
 
 # DLDI and internal SD slot of DSi
 # --------------------------------
@@ -34,11 +34,10 @@ SDIMAGE		:= image.bin
 # Libraries
 # ---------
 
-LIBS        += -lnflib -lmm9 -ldswifi9 -lnds9 -lc
+LIBS		+= -lnflib -ldswifi9 -lnds9 -lc
 LIBDIRS		+= $(BLOCKSDSEXT)/nflib \
 		   $(BLOCKSDS)/libs/dswifi \
-		   $(BLOCKSDS)/libs/libnds \
-		+= $(BLOCKSDS)/libs/maxmod
+		   $(BLOCKSDS)/libs/libnds
 
 # Build artifacts
 # ---------------
