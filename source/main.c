@@ -9,7 +9,7 @@
 // ON DS  ONE TILE IS 8X8!!!!!! 
 //bg size is 512 hence 512/8 = 64
 #define SPEED 2         // Scroll speed
-#define MAP_X 32       // Map width (animated blocks are 2x2, 64 / 2 = 32)
+#define MAP_X 32       // Map width (animated blocks are 2x2, 128 / 2 = 64)
 #define MAP_Y 32        // Map height (animated blocks are 2x2, 64 / 2 = 32)
 #define ROW_LENGTH 16
 #define TOTAL_BLOCKS 4
@@ -75,9 +75,9 @@ inline int coordsToTile(int coord){
 
 
 void addTile(int tileX, int tileY){
-    if(tileX > MAP_X || tileY > MAP_Y || tileX < 0 || tileY < 0){
-        return;
-    }
+    //if(tileX > MAP_X || tileY > MAP_Y || tileX < 0 || tileY < 0){
+    //    return;
+    //} probably uselesss for now
     if(TILE_MAP[tileY][tileX] >= TOTAL_BLOCKS - 1){
         TILE_MAP[tileY][tileX] = 0;
     }
@@ -131,23 +131,35 @@ int main(int argc, char **argv)
 
     int touchTileX = 0;
     int touchTileY = 0;
+    int scrollX = 0;
+    int scrollY = 0;
+
     while (1)
     {
         scanKeys(); 
-        u16 keys_held = keysDown();
+        u16 buttonsDown = keysDown();
+        u16 buttonsHeld = keysHeld();
         
 
         switch(state){
             case EDITOR:
-                if (keys_held & KEY_TOUCH){
+                if (buttonsDown & KEY_TOUCH){
                     touchRead(&touch_pos);
 
-                    touchTileX = coordsToTile(touch_pos.px);
-                    touchTileY = coordsToTile(touch_pos.py);
+                    touchTileX = coordsToTile(touch_pos.px + scrollX);
+                    touchTileY = coordsToTile(touch_pos.py + scrollY);
 
                     addTile(touchTileX,touchTileY);
                     UpdateTiles();
                 }
+                if (buttonsHeld & KEY_LEFT)  { scrollX -= SPEED; if (scrollX < 0)    scrollX = 0; }
+                if (buttonsHeld & KEY_RIGHT) { scrollX += SPEED; if (scrollX > 255)  scrollX = 255; } // 
+                if (buttonsHeld & KEY_UP)    { scrollY -= SPEED; if (scrollY < 0)    scrollY = 0; }
+                if (buttonsHeld & KEY_DOWN)  { scrollY += SPEED; if (scrollY > 319)   scrollY = 319; } // 
+
+                NF_ScrollBg(1, 3, scrollX, scrollY);
+                swiWaitForVBlank();
+
         }
          
 
