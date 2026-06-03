@@ -131,7 +131,7 @@ void initialise(){
     NF_CreateTextLayer(0, 0, 0, "normal");
 }
 
-void input(u16 buttonsDown, u16 buttonsHeld,int *cameraX, int *cameraY,int *scrollX, int* scrollY,int* touchTileX,int* touchTileY,touchPosition *touch_pos){
+void input(u16 buttonsDown, u16 buttonsHeld,int *cameraX, int *cameraY,int *scrollX, int* scrollY,int* touchTileX,int* touchTileY,touchPosition *touch_pos,int* originTileX, int* originTileY){
     if (buttonsHeld & KEY_LEFT){ 
         *scrollX -= SPEED; 
         *cameraX -= SPEED; 
@@ -162,6 +162,7 @@ void input(u16 buttonsDown, u16 buttonsHeld,int *cameraX, int *cameraY,int *scro
         //UpdateTiles(&originTileX,&originTileY);
         
         addTile(*touchTileX,*touchTileY); 
+        UpdateTiles(originTileX, originTileY); 
     }
     int valX = touch_pos->px + *cameraX ;
     int valY = touch_pos->py + *cameraY;
@@ -191,7 +192,7 @@ int main(int argc, char **argv)
 
     int touchTileX = 0;
     int touchTileY = 0;
-    int scrollX = 128;
+    int scrollX = 128;//should scroll values be centered?  desync addtile
     int scrollY = 160;
     int cameraX = 384; //center of canvas
     int cameraY = 416;
@@ -214,7 +215,7 @@ int main(int argc, char **argv)
         switch(state){
             case EDITOR:
                 NF_ClearTextLayer(0, 0); 
-                input(buttonsDown,buttonsHeld,&cameraX,&cameraY,&scrollX,&scrollY,&touchTileX,&touchTileY,&touch_pos);
+                input(buttonsDown,buttonsHeld,&cameraX,&cameraY,&scrollX,&scrollY,&touchTileX,&touchTileY,&touch_pos,&originTileX,&originTileY);
                 char buffer[64];
                 
                 snprintf(buffer,sizeof(buffer),"X px %d Y px %d",scrollX,scrollY);
@@ -237,6 +238,7 @@ int main(int argc, char **argv)
                     scrollX = 128;
                     scrollY = 160;
                     updateOrigin(&originTileX,&originTileY,&cameraTileX,&cameraTileY);
+                    UpdateTiles(&originTileX, &originTileY); 
 
                 } else {
                     NF_WriteText(0,0,1,2,"N");
@@ -245,7 +247,7 @@ int main(int argc, char **argv)
                 cameraTileX = cameraX / 16;
                 cameraTileY = cameraY / 16;
                
-                UpdateTiles(&originTileX, &originTileY); 
+                
                 ogX = originTileX;
                 ogY = originTileY;
                 break;
