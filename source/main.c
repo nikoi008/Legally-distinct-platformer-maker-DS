@@ -11,10 +11,10 @@
 #define SPEED 2         // Scroll speed
 #define MAP_X 32       // Map width (animated blocks are 2x2, 128 / 2 = 64)
 #define MAP_Y 32        // Map height (animated blocks are 2x2, 64 / 2 = 32)
-#define GRID_X 64
-#define GRID_Y 64
+#define GRID_X 128
+#define GRID_Y 128
 #define ROW_LENGTH 16
-#define TOTAL_BLOCKS 4
+#define TOTAL_BLOCKS 5
 #define TILE_LAYER 3
 
 typedef enum{
@@ -33,7 +33,8 @@ typedef struct{
     int bottomLeftTile;
     int bottomRightTile;
 }block;
-
+int ogX = 0;
+int ogY = 0;
 block blocks[TOTAL_BLOCKS] = {};
 
 
@@ -66,36 +67,45 @@ void initBlocks(){
     blocks[3].bottomLeftTile =3;
     blocks[3].bottomRightTile = 3;
 
+    blocks[4].solid = true; //debug block to change later
+    blocks[4].ifTouched = NULL;
+    blocks[4].topRightTile = 4;
+    blocks[4].topLeftTile = 4;
+    blocks[4].bottomLeftTile = 4;
+    blocks[4].bottomRightTile = 4;
+
 }
 
 int WATER_SPEED;
 int TILE_MAP[GRID_Y][GRID_X]; // 512 pixels, 32 tiles, every frame is 2x2 (16/8) tiles
 
 inline int coordsToTile(int coord){
-    return coord / 16;
+    return coord / 16;  
 }
 
 
 void addTile(int tileX, int tileY){
-    //if(tileX > MAP_X || tileY > MAP_Y || tileX < 0 || tileY < 0){
-    //    return;
-    //} probably uselesss for now
-    if(TILE_MAP[tileY][tileX] >= TOTAL_BLOCKS - 1){
-        TILE_MAP[tileY][tileX] = 0;
-    }
-    else{
-       TILE_MAP[tileY][tileX]++; 
-    }
-
+    if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
+    if(TILE_MAP[tileY + 10][tileX + 8] >= TOTAL_BLOCKS - 1)
+        TILE_MAP[tileY + 10][tileX + 8] = 0;
+    else
+        TILE_MAP[tileY + 10][tileX + 8]++;
 }
-void UpdateTiles()
+void UpdateTiles(int *originTileX, int *originTileY)
 {
-    for(int y = 0; y < MAP_Y; y++){      
-        for(int x = 0; x < MAP_X; x++){
-            NF_SetTileOfMap(1, TILE_LAYER, x*2,y*2,blocks[TILE_MAP[y][x]].topLeftTile); //tl
-            NF_SetTileOfMap(1, TILE_LAYER, x*2+1,y*2,blocks[TILE_MAP[y][x]].topRightTile);  //tr
-            NF_SetTileOfMap(1, TILE_LAYER, x*2, y*2+1,blocks[TILE_MAP[y][x]].bottomLeftTile); //bl
-            NF_SetTileOfMap(1, TILE_LAYER, x*2+1,y*2+1,blocks[TILE_MAP[y][x]].bottomRightTile); //br
+    for(int y = *originTileY; y < *originTileY + MAP_Y; y++){
+        for(int x = *originTileX; x < *originTileX + MAP_X; x++){
+            int coordX = x - *originTileX;
+            int coordY = y - *originTileY;
+            int blockID = 0;
+            if(x >= 0 && x < GRID_X && y >= 0 && y < GRID_Y)
+                blockID = TILE_MAP[y][x];
+            else
+                blockID = 4; // out of bounds debug block
+            NF_SetTileOfMap(1, TILE_LAYER, coordX*2,   coordY*2,   blocks[blockID].topLeftTile);
+            NF_SetTileOfMap(1, TILE_LAYER, coordX*2+1, coordY*2,   blocks[blockID].topRightTile);
+            NF_SetTileOfMap(1, TILE_LAYER, coordX*2,   coordY*2+1, blocks[blockID].bottomLeftTile);
+            NF_SetTileOfMap(1, TILE_LAYER, coordX*2+1, coordY*2+1, blocks[blockID].bottomRightTile);
         }
     }
     NF_UpdateVramMap(1, 3);
@@ -121,7 +131,49 @@ void initialise(){
     NF_CreateTextLayer(0, 0, 0, "normal");
 }
 
+void input(u16 buttonsDown, u16 buttonsHeld,int *cameraX, int *cameraY,int *scrollX, int* scrollY,int* touchTileX,int* touchTileY,touchPosition *touch_pos){
+    if (buttonsHeld & KEY_LEFT){ 
+        *scrollX -= SPEED; 
+        *cameraX -= SPEED; 
+        //if (*scrollX < 0)  *scrollX = 0; 
+    }
+    if (buttonsHeld & KEY_RIGHT){ 
+        *scrollX += SPEED; 
+        *cameraX += SPEED; 
+        //if (*scrollX > 255)  *scrollX = 255; 
+    }  
+    if (buttonsHeld & KEY_UP){ 
+        *scrollY -= SPEED; 
+        *cameraY -= SPEED; 
+        //if (*scrollY < 0) *scrollY = 0; 
+    }
+    if (buttonsHeld & KEY_DOWN){
+        *scrollY += SPEED;
+        *cameraY += SPEED;  
+        //if (*scrollY > 319)  *scrollY = 319; 
+    }
+    
+    if (buttonsDown & KEY_TOUCH){
+        touchRead(touch_pos);
 
+        *touchTileX = coordsToTile(touch_pos->px + *cameraX );
+        *touchTileY = coordsToTile(touch_pos->py + *cameraY );
+
+        //UpdateTiles(&originTileX,&originTileY);
+        
+        addTile(*touchTileX,*touchTileY); 
+    }
+    int valX = touch_pos->px + *cameraX ;
+    int valY = touch_pos->py + *cameraY;
+    char buffer[64];
+        snprintf(buffer,sizeof(buffer),"t+c X %d, Y %d",valX,valY );
+        NF_WriteText(0,0,1,6,buffer);
+        
+}
+void updateOrigin(int *originTileX, int *originTileY, int *cameraTileX,int *cameraTileY){
+    *originTileX = *cameraTileX;
+    *originTileY = *cameraTileY;
+}
 int main(int argc, char **argv)
 {
 
@@ -141,7 +193,15 @@ int main(int argc, char **argv)
     int touchTileY = 0;
     int scrollX = 128;
     int scrollY = 160;
-    int minimumX = 0;
+    int cameraX = 384; //center of canvas
+    int cameraY = 416;
+    int cameraTileX = cameraX / 16;
+    int cameraTileY = cameraY / 16;
+
+    int originTileX = cameraTileX; //decides the origin of where to start drawing
+    int originTileY = cameraTileY;
+
+
     
 
     while (1)
@@ -153,29 +213,41 @@ int main(int argc, char **argv)
 
         switch(state){
             case EDITOR:
-                if (buttonsDown & KEY_TOUCH){
-                    touchRead(&touch_pos);
-
-                    touchTileX = coordsToTile(touch_pos.px + scrollX);
-                    touchTileY = coordsToTile(touch_pos.py + scrollY);
-
-                    addTile(touchTileX,touchTileY);
-                    UpdateTiles();
-                }
-                if (buttonsHeld & KEY_LEFT)  { scrollX -= SPEED; if (scrollX < 0)    scrollX = 0; }
-                if (buttonsHeld & KEY_RIGHT) { scrollX += SPEED; if (scrollX > 255)  scrollX = 255; } // 
-                if (buttonsHeld & KEY_UP)    { scrollY -= SPEED; if (scrollY < 0)    scrollY = 0; }
-                if (buttonsHeld & KEY_DOWN)  { scrollY += SPEED; if (scrollY > 319)   scrollY = 319; } // 
-                char buffer[64];
                 NF_ClearTextLayer(0, 0); 
+                input(buttonsDown,buttonsHeld,&cameraX,&cameraY,&scrollX,&scrollY,&touchTileX,&touchTileY,&touch_pos);
+                char buffer[64];
+                
                 snprintf(buffer,sizeof(buffer),"X px %d Y px %d",scrollX,scrollY);
                 NF_WriteText(0,0,1,1,buffer);
 
+                char camCord[64];
+                snprintf(camCord,sizeof(camCord),"camX %d camY %d",cameraX,cameraY);
+                NF_WriteText(0,0,1,3,camCord);
+
+                char tilecoords[64];
+                snprintf(tilecoords,sizeof(tilecoords),"tileX %d tileY %d",touchTileX,touchTileY);
+                NF_WriteText(0,0,1,4,tilecoords);
+
+                char ocord[64];
+                snprintf(ocord,sizeof(ocord),"oX %d oY %d",originTileX,originTileY);
+                NF_WriteText(0,0,1,5,ocord);
+
                 if(scrollX < 16 || scrollX > 240 /*512-16-256*/ || scrollY < 16 || scrollY > 304 /*512 - 192  - 16*/){
                     NF_WriteText(0,0,1,2,"T");
+                    scrollX = 128;
+                    scrollY = 160;
+                    updateOrigin(&originTileX,&originTileY,&cameraTileX,&cameraTileY);
+
                 } else {
                     NF_WriteText(0,0,1,2,"N");
                 }
+                //UpdateTiles(&originTileX,&originTileY);
+                cameraTileX = cameraX / 16;
+                cameraTileY = cameraY / 16;
+               
+                UpdateTiles(&originTileX, &originTileY); 
+                ogX = originTileX;
+                ogY = originTileY;
                 break;
 
 
