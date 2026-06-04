@@ -16,7 +16,7 @@
 #define ROW_LENGTH 16
 #define TOTAL_BLOCKS 5
 #define TILE_LAYER 3
-
+#define BLACK 0 
 typedef enum{
     EDITOR,
     PLAY_SCREN
@@ -40,8 +40,14 @@ typedef struct{
     int touchTileX;
     int touchTileY;
 }inputs;
+/*
+typedef struct{
+    int originTileX;
+    int originTileY;
+    int scrollX;
+    int scrollY
+}//*/
 
-inputs input = {};
 
 void initBlocks(){
     blocks[0].solid = false;
@@ -135,10 +141,13 @@ void initialise(){
     NF_InitTextSys(0);
     NF_LoadTextFont("fnt/default", "normal", 256, 256, 0);
     NF_CreateTextLayer(0, 0, 0, "normal");
+    NF_DefineTextColor(0,0,BLACK,0,0,0);
     BG_PALETTE_SUB[0] = RGB15(31, 31, 31); 
+    BG_PALETTE[0] = RGB15(31,31,31);
+
 }
 
-void doInputs(int *cameraX, int *cameraY,int *scrollX, int* scrollY,int* originTileX, int* originTileY,inputs *input){
+void doInputsEditor(int *cameraX, int *cameraY,int *scrollX, int* scrollY,int* originTileX, int* originTileY,inputs *input){
     if (input->buttonsHeld & KEY_LEFT){ 
         *scrollX -= SPEED; 
         *cameraX -= SPEED; 
@@ -199,9 +208,10 @@ int main(int argc, char **argv)
 
     int originTileX = cameraTileX;
     int originTileY = cameraTileY;
-
+    inputs input = {};
     while (1)
     {
+
         scanKeys(); 
         input.buttonsDown = keysDown();
         input.buttonsHeld = keysHeld();
@@ -209,8 +219,9 @@ int main(int argc, char **argv)
 
         switch(state){
             case EDITOR:
+            
                 NF_ClearTextLayer(0, 0); 
-                doInputs(&cameraX,&cameraY,&scrollX,&scrollY,&originTileX,&originTileY,&input);
+                doInputsEditor(&cameraX,&cameraY,&scrollX,&scrollY,&originTileX,&originTileY,&input);
                 char buffer[64];
                 
                 snprintf(buffer,sizeof(buffer),"X px %d Y px %d",scrollX,scrollY);
