@@ -8,7 +8,7 @@
 #include <nf_lib.h>
 // ON DS  ONE TILE IS 8X8!!!!!! 
 //bg size is 512 hence 512/8 = 64
-#define SPEED 2         // Scroll speed
+#define SPEED 4        // Scroll speed
 #define MAP_X 32       // Map width (animated blocks are 2x2, 128 / 2 = 64)
 #define MAP_Y 32        // Map height (animated blocks are 2x2, 64 / 2 = 32)
 #define GRID_X 1024
@@ -130,6 +130,9 @@ void initialise(){
     NF_InitTiledBgSys(0);       
     NF_InitTiledBgSys(1);   
 
+    NF_InitSpriteBuffers();  
+    NF_InitSpriteSys(1);
+
     NF_InitTextSys(0);
     NF_LoadTextFont("fnt/default", "normal", 256, 256, 0);
     NF_CreateTextLayer(0, 0, 0, "normal");
@@ -162,8 +165,9 @@ void doInputsEditor(worldCoordinates *coords,inputs *input){
 
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
-
-        addTile(input->touchTileX,input->touchTileY); 
+        if(input->touchPos.py >= 22){//hud width
+            addTile(input->touchTileX,input->touchTileY);
+        }
         updateTiles(coords); 
     }
 
@@ -223,6 +227,28 @@ int main(int argc, char **argv)
 
     NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 10);//todo dont just add +10, m
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
+
+
+    NF_LoadTiledBg("bg/GRID","grid",512,256);
+    NF_CreateTiledBg(1,2,"grid");
+
+    NF_LoadSpriteGfx("bg/animatedSpriteHud", 0, 64,32);
+    NF_LoadSpritePal("bg/animatedSpriteHud", 0);
+
+
+    NF_VramSpriteGfx(1, 0, 0, false); 
+    NF_VramSpritePal(1, 0, 0);
+
+
+    NF_CreateSprite(1, 0, 0, 0, 0, 0);
+    NF_CreateSprite(1, 1, 0, 0, 64, 0);
+    NF_SpriteFrame(1, 1, 1);
+    NF_CreateSprite(1, 2, 0, 0, 128, 0);
+    NF_SpriteFrame(1, 2, 1);
+
+    NF_CreateSprite(1, 3, 0, 0, 192, 0);
+    NF_SpriteFrame(1, 3, 2);
+
     initBlocks();
 
     worldCoordinates coords = {};
@@ -238,6 +264,8 @@ int main(int argc, char **argv)
     int originTileX = cameraTileX;
     int originTileY = cameraTileY;*/ //keepign for future reference in case anything breaks later
     inputs input = {};
+    int gridX = 0;
+    int gridY = 0;
     while (1)
     {
 
@@ -251,15 +279,22 @@ int main(int argc, char **argv)
                 doInputsEditor(&coords,&input);
                 debugText(&coords, &input);
                 scrollLogic(&coords); 
+                gridX = coords.cameraX % 16;
+               // gridY = coords.scrollY % 16;
+               gridY = coords.cameraY % 16;
                 break;
 
         }
     
-        
+        NF_SpriteOamSet(0);
+        NF_SpriteOamSet(1);
         swiWaitForVBlank();
         NF_UpdateVramMap(1, 3);
         NF_ScrollBg(1, 3,coords.scrollX,coords.scrollY);
-        NF_UpdateTextLayers();  
+        NF_ScrollBg(1,2,gridX,gridY);
+        NF_UpdateTextLayers();
+        oamUpdate(&oamMain);
+        oamUpdate(&oamSub);
     }
     return 0;
     
