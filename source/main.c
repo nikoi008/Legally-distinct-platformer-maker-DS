@@ -52,7 +52,9 @@ typedef struct{
     int cameraTileY;
 }worldCoordinates;
 
-
+typedef struct{
+    int currentBlock;
+}editorContext;
 
 void initBlocks(){
     blocks[0].solid = false;
@@ -85,12 +87,13 @@ inline int coordsToTile(int coord){
 }
 
 
-void addTile(int tileX, int tileY){
+void addTile(int tileX, int tileY, int currentBlock){
     if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
-    if(TILE_MAP[tileY + 10][tileX + 8] >= TOTAL_BLOCKS - 1)
-        TILE_MAP[tileY + 10][tileX + 8] = 0;
-    else
-        TILE_MAP[tileY + 10][tileX + 8]++;
+    //if(TILE_MAP[tileY + 10][tileX + 8] >= TOTAL_BLOCKS - 1)
+    //    TILE_MAP[tileY + 10][tileX + 8] = 0;
+    //else
+    //    TILE_MAP[tileY + 10][tileX + 8]++;
+    TILE_MAP[tileY + 10][tileX + 8] = currentBlock;
 }
 
 void updateTiles(worldCoordinates *coords)
@@ -142,7 +145,7 @@ void initialise(){
 
 }
 
-void doInputsEditor(worldCoordinates *coords,inputs *input){
+void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctx){
     if (input->buttonsHeld & KEY_LEFT){ 
         coords->scrollX -= SPEED; 
         coords->cameraX -=SPEED; 
@@ -159,17 +162,48 @@ void doInputsEditor(worldCoordinates *coords,inputs *input){
         coords->scrollY += SPEED;
         coords->cameraY += SPEED;  
     }
-    
+    /*if(coords->cameraX < 0){
+        coords->cameraX = 0;
+    }
+    else if(coords->cameraX > GRID_X * 16){
+        coords->cameraX = GRID_X * 16;
+    }
+    if(coords->cameraY < 0){
+        coords->cameraY = 0;
+    }
+    else if(coords->cameraY > GRID_Y * 16){
+        coords->cameraY = GRID_Y * 16;
+    }*/ //todo add better bounds
+    if(input->buttonsHeld & KEY_TOUCH){
+        touchRead(&input->touchPos);
+                input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
+        input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+        
+        if(input->touchPos.py >= 22){//hud width
+            addTile(input->touchTileX,input->touchTileY,ctx->currentBlock);
+        }
+        updateTiles(coords); 
+    }
+
     if (input->buttonsDown & KEY_TOUCH){
         touchRead(&input->touchPos);
 
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+        
         if(input->touchPos.py >= 22){//hud width
-            addTile(input->touchTileX,input->touchTileY);
+        //    addTile(input->touchTileX,input->touchTileY,ctx->currentBlock);
+        }else{
+            if(input->touchPos.px /16  <= 1 || input->touchPos.px /16 >= 14){
+                ctx->currentBlock = (ctx->currentBlock + 1)% TOTAL_BLOCKS;
+                
+            }
         }
         updateTiles(coords); 
     }
+
+
+
 
 
     int valX = input->touchPos.px + coords->cameraX ;
@@ -233,25 +267,34 @@ int main(int argc, char **argv)
     NF_CreateTiledBg(1,2,"grid");
 
     NF_LoadSpriteGfx("bg/animatedSpriteHud", 0, 64,32);
-    NF_LoadSpritePal("bg/animatedSpriteHud", 0);
+    NF_LoadSpritePal("bg/animatedSpriteHud", 0);//todo make dedicated sprite folder
 
 
     NF_VramSpriteGfx(1, 0, 0, false); 
     NF_VramSpritePal(1, 0, 0);
 
 
-    NF_CreateSprite(1, 0, 0, 0, 0, 0);
+    NF_CreateSprite(1, 4, 0, 0, 0, 0);
+
+
     NF_CreateSprite(1, 1, 0, 0, 64, 0);
     NF_SpriteFrame(1, 1, 1);
     NF_CreateSprite(1, 2, 0, 0, 128, 0);
-    NF_SpriteFrame(1, 2, 1);
-
+    NF_SpriteFrame(1, 2, 3); 
     NF_CreateSprite(1, 3, 0, 0, 192, 0);
-    NF_SpriteFrame(1, 3, 2);
+    NF_SpriteFrame(1, 3, 2); //all hud elements + frames
 
-    initBlocks();
+    NF_LoadSpriteGfx("bg/highlight",1,16,16);
+    NF_LoadSpritePal("bg/highlight",1);
+    NF_VramSpriteGfx(1,1,1,false);
+    NF_VramSpritePal(1,1,1);
+    NF_CreateSprite(1,0,1,1,29,3);
 
+
+    initBlocks();  
+    editorContext ctx = {};
     worldCoordinates coords = {};
+    coords.cameraY = ( GRID_Y * 16 )/2;
    /*/ int touchTileX = 0;
     int touchTileY = 0;
     int scrollX = 128;//should scroll values be 0? they desync addtile
@@ -276,12 +319,12 @@ int main(int argc, char **argv)
 
         switch(state){
             case EDITOR:
-                doInputsEditor(&coords,&input);
+                doInputsEditor(&coords,&input,&ctx);
                 debugText(&coords, &input);
                 scrollLogic(&coords); 
+                NF_MoveSprite(1,0,(ctx.currentBlock * 18) + 29,3);
                 gridX = coords.cameraX % 16;
-               // gridY = coords.scrollY % 16;
-               gridY = coords.cameraY % 16;
+                gridY = coords.cameraY % 16;
                 break;
 
         }

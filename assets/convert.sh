@@ -5,6 +5,7 @@ GRIT=$BLOCKSDS/tools/grit/grit
 
 
 $GRIT animatedSpriteHud.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT highlight.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 
 $GRIT HUD.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
 $GRIT GRID.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
