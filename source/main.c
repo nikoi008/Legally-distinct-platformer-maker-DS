@@ -14,7 +14,7 @@
 #define GRID_X 1024
 #define GRID_Y 1024 //16kx16k may be a bit overkill
 #define ROW_LENGTH 16
-#define TOTAL_BLOCKS 3
+#define TOTAL_BLOCKS 4
 #define TILE_LAYER 3
 #define BLACK 0 
 typedef enum{
@@ -54,6 +54,8 @@ typedef struct{
 
 typedef struct{
     int currentBlock;
+    int flagPosX;
+    int flagPosY;
 }editorContext;
 
 void initBlocks(){
@@ -77,6 +79,13 @@ void initBlocks(){
     blocks[2].topRightTile = 6;
     blocks[2].bottomLeftTile = 7;
     blocks[2].bottomRightTile = 8;
+
+    blocks[3].solid = true;
+    blocks[3].ifTouched = NULL;
+    blocks[3].topLeftTile = 9;
+    blocks[3].topRightTile = 10;
+    blocks[3].bottomLeftTile = 11;
+    blocks[3].bottomRightTile = 12;
 }
 
 
@@ -87,12 +96,17 @@ inline int coordsToTile(int coord){
 }
 
 
-void addTile(int tileX, int tileY, int currentBlock){
+void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
     if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
     //if(TILE_MAP[tileY + 10][tileX + 8] >= TOTAL_BLOCKS - 1)
     //    TILE_MAP[tileY + 10][tileX + 8] = 0;
     //else
     //    TILE_MAP[tileY + 10][tileX + 8]++;
+    if( (ctx->flagPosX >= 0 || ctx->flagPosY >= 0) && ctx->currentBlock == 2){
+        TILE_MAP[ctx->flagPosY + 10][ctx->flagPosX + 8] = 0;
+        ctx->flagPosX = tileX;
+        ctx->flagPosY = tileY;
+    }
     TILE_MAP[tileY + 10][tileX + 8] = currentBlock;
 }
 
@@ -145,7 +159,7 @@ void initialise(){
 
 }
 
-void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctx){
+void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     if (input->buttonsHeld & KEY_LEFT){ 
         coords->scrollX -= SPEED; 
         coords->cameraX -=SPEED; 
@@ -162,25 +176,14 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctx){
         coords->scrollY += SPEED;
         coords->cameraY += SPEED;  
     }
-    /*if(coords->cameraX < 0){
-        coords->cameraX = 0;
-    }
-    else if(coords->cameraX > GRID_X * 16){
-        coords->cameraX = GRID_X * 16;
-    }
-    if(coords->cameraY < 0){
-        coords->cameraY = 0;
-    }
-    else if(coords->cameraY > GRID_Y * 16){
-        coords->cameraY = GRID_Y * 16;
-    }*/ //todo add better bounds
+
     if(input->buttonsHeld & KEY_TOUCH){
         touchRead(&input->touchPos);
                 input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
         
         if(input->touchPos.py >= 22){//hud width
-            addTile(input->touchTileX,input->touchTileY,ctx->currentBlock);
+            addTile(input->touchTileX,input->touchTileY,ctxE->currentBlock,ctxE);
         }
         updateTiles(coords); 
     }
@@ -191,17 +194,14 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctx){
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
         
-        if(input->touchPos.py >= 22){//hud width
-        //    addTile(input->touchTileX,input->touchTileY,ctx->currentBlock);
-        }else{
+        if(input->touchPos.py <= 22){//hud width
             if(input->touchPos.px /16  <= 1 || input->touchPos.px /16 >= 14){
-                ctx->currentBlock = (ctx->currentBlock + 1)% TOTAL_BLOCKS;
+                ctxE->currentBlock = (ctxE->currentBlock + 1)% TOTAL_BLOCKS;
                 
             }
         }
         updateTiles(coords); 
     }
-
 
 
 
@@ -218,7 +218,7 @@ void updateOrigin(worldCoordinates *coords){
     coords->originTileY = coords->cameraTileY;
 }
 
-void debugText(worldCoordinates *coords, inputs *input){
+void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx){
     NF_ClearTextLayer(0, 0); 
     char buffer[64];
     
@@ -236,6 +236,11 @@ void debugText(worldCoordinates *coords, inputs *input){
     char ocord[64];
     snprintf(ocord,sizeof(ocord),"oX %d oY %d",coords->originTileX,coords->originTileY);
     NF_WriteText(0,0,1,5,ocord);
+
+
+    char fcord[64];
+    snprintf(fcord,sizeof(fcord),"fX %d fY %d",ctx->flagPosX,ctx->flagPosY);
+    NF_WriteText(0,0,1,6,fcord);
 }
 
 void scrollLogic(worldCoordinates *coords){
@@ -259,7 +264,7 @@ int main(int argc, char **argv)
     srand(time(NULL));
     initialise();
 
-    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 10);//todo dont just add +10, m
+    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 20);//todo dont just add +10, m
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
 
 
@@ -292,7 +297,8 @@ int main(int argc, char **argv)
 
 
     initBlocks();  
-    editorContext ctx = {};
+    editorContext ctxE = {};
+    ctxE.currentBlock = 1;
     worldCoordinates coords = {};
     coords.cameraY = ( GRID_Y * 16 )/2;
    /*/ int touchTileX = 0;
@@ -319,10 +325,10 @@ int main(int argc, char **argv)
 
         switch(state){
             case EDITOR:
-                doInputsEditor(&coords,&input,&ctx);
-                debugText(&coords, &input);
+                doInputsEditor(&coords,&input,&ctxE);
+                debugText(&coords, &input,&ctxE);
                 scrollLogic(&coords); 
-                NF_MoveSprite(1,0,(ctx.currentBlock * 18) + 29,3);
+                NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 29,3);
                 gridX = coords.cameraX % 16;
                 gridY = coords.cameraY % 16;
                 break;
