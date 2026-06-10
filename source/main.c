@@ -64,28 +64,28 @@ typedef struct{
 }playerContext;
 
 void initBlocks(){
-    blocks[0].solid = false;
+    blocks[0].solid = false; //air
     blocks[0].ifTouched = NULL;
     blocks[0].topRightTile = 0;
     blocks[0].topLeftTile = 0;
     blocks[0].bottomLeftTile = 0;
     blocks[0].bottomRightTile = 0;
 
-    blocks[1].solid = true;
+    blocks[1].solid = true; //dirt
     blocks[1].ifTouched = NULL;
     blocks[1].topLeftTile = 1;
     blocks[1].topRightTile = 2;
     blocks[1].bottomLeftTile = 3;
     blocks[1].bottomRightTile = 4;
 
-    blocks[2].solid = true;
+    blocks[2].solid = false; //flag
     blocks[2].ifTouched = NULL;
     blocks[2].topLeftTile = 5;
     blocks[2].topRightTile = 6;
     blocks[2].bottomLeftTile = 7;
     blocks[2].bottomRightTile = 8;
 
-    blocks[3].solid = true;
+    blocks[3].solid = true;//spike
     blocks[3].ifTouched = NULL;
     blocks[3].topLeftTile = 9;
     blocks[3].topRightTile = 10;
@@ -159,7 +159,9 @@ void initialise(){
     BG_PALETTE[0] = RGB15(9, 19, 28);
 
 }
-
+inline bool tileSolid(int tileX,int tileY){
+    return blocks[TILE_MAP[tileY][tileX]].solid;
+}
 void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     if (input->buttonsHeld & KEY_LEFT){ 
         coords->scrollX -= SPEED; 
@@ -262,10 +264,21 @@ void scrollLogic(worldCoordinates *coords){
 
     }
 }
+
+void playerGravity(playerContext *ctx){
+    if(tileSolid((ctx->playerX/16) + 8,((ctx->playerY / 16) + 10)+1)){
+        
+        ctx->playerY -=1;
+        return;
+    }
+    else{
+        ctx->playerY += 1;
+    }
+}
 void doInputsPlayer(inputs *input,playerContext *ctxP){
     if(input->buttonsHeld & KEY_LEFT){ctxP->playerX -= 2;}
     if(input->buttonsHeld & KEY_RIGHT){ctxP->playerX += 2;}
-    if(input->buttonsHeld & KEY_B){ctxP->playerY -= 20;}
+    if(input->buttonsDown & KEY_B){ctxP->playerY -= 20;}
 }
 int main(int argc, char **argv)
 {
@@ -358,6 +371,7 @@ int main(int argc, char **argv)
             case PLAY_SCREEN:
                 doInputsPlayer(&input,&ctxP);
                 NF_MoveSprite(1,0,ctxP.playerX,ctxP.playerY);
+                playerGravity(&ctxP);
             
                 
 
