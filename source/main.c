@@ -104,11 +104,11 @@ inline int coordsToTile(int coord){
 void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
     if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
     if( (ctx->flagPosX >= 0 || ctx->flagPosY >= 0) && ctx->currentBlock == 2){
-        TILE_MAP[ctx->flagPosY + 10][ctx->flagPosX + 8] = 0;
+        TILE_MAP[ctx->flagPosY][ctx->flagPosX] = 0;
         ctx->flagPosX = tileX;
         ctx->flagPosY = tileY;
     }
-    TILE_MAP[tileY + 10][tileX + 8] = currentBlock;
+    TILE_MAP[tileY][tileX] = currentBlock;
 }
 
 void updateTiles(worldCoordinates *coords)
@@ -220,8 +220,8 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     }
 }
 void updateOrigin(worldCoordinates *coords){
-    coords->originTileX = coords->cameraTileX;
-    coords->originTileY = coords->cameraTileY;
+    coords->originTileX = coords->cameraTileX - 8;
+    coords->originTileY = coords->cameraTileY - 10;
 }
 
 void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx){
@@ -264,15 +264,12 @@ void scrollLogic(worldCoordinates *coords){
 
     }
 }
-
 void playerGravity(playerContext *ctx){
-    if(tileSolid((ctx->playerX/16) + 8,((ctx->playerY / 16) + 10)+1)){
-        
-        ctx->playerY -=1;
+    if(tileSolid((ctx->playerX/16),((ctx->playerY / 16))+1)){
         return;
     }
     else{
-        ctx->playerY += 1;
+        ctx->playerY += 2;
     }
 }
 void doInputsPlayer(inputs *input,playerContext *ctxP){
@@ -327,19 +324,6 @@ int main(int argc, char **argv)
     ctxE.currentBlock = 1;
     worldCoordinates coords = {};
     coords.cameraY = ( GRID_Y * 16 )/2;
-    //coords.scrollX = 128;  
-    //coords.scrollY = 160; DONT DO THIS
-   /*/ int touchTileX = 0;
-    int touchTileY = 0;
-    int scrollX = 128;//should scroll values be 0? they desync addtile
-    int scrollY = 160;
-    int cameraX = ((GRID_X* 16)-256) / 2;   
-    int cameraY = ((GRID_Y * 16) - 192) / 2;     
-    int cameraTileX = cameraX / 16;
-    int cameraTileY = cameraY / 16;
-
-    int originTileX = cameraTileX;
-    int originTileY = cameraTileY;*/ //keepign for future reference in case anything breaks later
     inputs input = {};
     int gridX = 0;
     int gridY = 0;
