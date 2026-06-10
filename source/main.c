@@ -58,6 +58,11 @@ typedef struct{
     int flagPosY;
 }editorContext;
 
+typedef struct{
+    int playerX;
+    int playerY;
+}playerContext;
+
 void initBlocks(){
     blocks[0].solid = false;
     blocks[0].ifTouched = NULL;
@@ -98,10 +103,6 @@ inline int coordsToTile(int coord){
 
 void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
     if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
-    //if(TILE_MAP[tileY + 10][tileX + 8] >= TOTAL_BLOCKS - 1)
-    //    TILE_MAP[tileY + 10][tileX + 8] = 0;
-    //else
-    //    TILE_MAP[tileY + 10][tileX + 8]++;
     if( (ctx->flagPosX >= 0 || ctx->flagPosY >= 0) && ctx->currentBlock == 2){
         TILE_MAP[ctx->flagPosY + 10][ctx->flagPosX + 8] = 0;
         ctx->flagPosX = tileX;
@@ -179,7 +180,7 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
 
     if(input->buttonsHeld & KEY_TOUCH){
         touchRead(&input->touchPos);
-                input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
+        input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
         
         if(input->touchPos.py >= 22){//hud width
@@ -203,15 +204,18 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         updateTiles(coords); 
     }
 
-
-
-
-    int valX = input->touchPos.px + coords->cameraX ;
-    int valY = input->touchPos.py + coords->cameraY;
-    char buffer[64];
-        snprintf(buffer,sizeof(buffer),"t+c X %d, Y %d",valX,valY );
-        NF_WriteText(0,0,1,6,buffer);
+    if(input->buttonsDown & KEY_A){
+        state = PLAY_SCREEN;
         
+        //unload grid, swap with seperate HUD
+        //NF_ClearTextLayer(1, 0); 
+        NF_ShowSprite(1,1,false);
+        NF_ShowSprite(1,2,false);
+        NF_ShowSprite(1,3,false);
+        NF_ShowSprite(1,4,false);
+        NF_DeleteTiledBg(1,2);
+        lcdSwap();
+    }
 }
 void updateOrigin(worldCoordinates *coords){
     coords->originTileX = coords->cameraTileX;
@@ -258,6 +262,11 @@ void scrollLogic(worldCoordinates *coords){
 
     }
 }
+void doInputsPlayer(inputs *input,playerContext *ctxP){
+    if(input->buttonsHeld & KEY_LEFT){ctxP->playerX -= 2;}
+    if(input->buttonsHeld & KEY_RIGHT){ctxP->playerX += 2;}
+    if(input->buttonsHeld & KEY_B){ctxP->playerY -= 20;}
+}
 int main(int argc, char **argv)
 {
 
@@ -278,9 +287,7 @@ int main(int argc, char **argv)
     NF_VramSpriteGfx(1, 0, 0, false); 
     NF_VramSpritePal(1, 0, 0);
 
-
     NF_CreateSprite(1, 4, 0, 0, 0, 0);
-
 
     NF_CreateSprite(1, 1, 0, 0, 64, 0);
     NF_SpriteFrame(1, 1, 1);
@@ -296,11 +303,19 @@ int main(int argc, char **argv)
     NF_CreateSprite(1,0,1,1,29,3);
 
 
+    //NF_LoadSpriteGfx("bg/sprite",2,32,32);
+    //NF_LoadSpritePal("bg/sprite",2);
+    //NF_VramSpriteGfx(1,2,2,false);
+    //NF_VramSpritePal(1,2,2);
+
     initBlocks();  
     editorContext ctxE = {};
+    playerContext ctxP = {};
     ctxE.currentBlock = 1;
     worldCoordinates coords = {};
     coords.cameraY = ( GRID_Y * 16 )/2;
+    //coords.scrollX = 128;  
+    //coords.scrollY = 160; DONT DO THIS
    /*/ int touchTileX = 0;
     int touchTileY = 0;
     int scrollX = 128;//should scroll values be 0? they desync addtile
@@ -326,12 +341,26 @@ int main(int argc, char **argv)
         switch(state){
             case EDITOR:
                 doInputsEditor(&coords,&input,&ctxE);
-                debugText(&coords, &input,&ctxE);
+                if(!PLAY_SCREEN){debugText(&coords, &input,&ctxE);}
+                else{
+                    ctxP.playerX = ctxE.flagPosX*16;
+                    ctxP.playerY = ctxE.flagPosY*16;
+                    //todo make sure that player camera is also centered to flagPos
+                }
                 scrollLogic(&coords); 
                 NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 29,3);
                 gridX = coords.cameraX % 16;
                 gridY = coords.cameraY % 16;
+
                 break;
+
+            
+            case PLAY_SCREEN:
+                doInputsPlayer(&input,&ctxP);
+                NF_MoveSprite(1,0,ctxP.playerX,ctxP.playerY);
+            
+                
+
 
         }
     
