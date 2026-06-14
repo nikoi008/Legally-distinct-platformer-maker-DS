@@ -36,6 +36,7 @@ block blocks[TOTAL_BLOCKS] = {};
 typedef struct{
     u16 buttonsDown;
     u16 buttonsHeld;
+    u16 buttonsUp;
     touchPosition touchPos;
     int touchTileX;
     int touchTileY;
@@ -61,8 +62,18 @@ typedef struct{
 typedef struct{
     int playerX;
     int playerY;
+    int velocityX;
+    int velocityY;
+    bool grounded;
+    
 }playerContext;
 
+typedef struct{
+    int topLeftX;
+    int topLeftY;
+    int width;
+    int height;
+}rectangle;
 void initBlocks(){
     blocks[0].solid = false; //air
     blocks[0].ifTouched = NULL;
@@ -130,7 +141,6 @@ void updateTiles(worldCoordinates *coords)
             NF_SetTileOfMap(1, TILE_LAYER, coordX*2+1, coordY*2+1, blocks[blockID].bottomRightTile);
         }
     }
-   
 }
 void initialise(){
     NF_Set2D(0, 0);
@@ -264,18 +274,63 @@ void scrollLogic(worldCoordinates *coords){
 
     }
 }
+bool checkCollision(rectangle rectA, rectangle rectB){
+    return !(rectA.topLeftX > rectB.topLeftX + rectB.width ||
+             rectA.topLeftX + rectA.width < rectB.topLeftX ||
+             rectA.topLeftY + rectA.height < rectB.topLeftY ||
+             rectA.topLeftY > rectB.topLeftY + rectB.height);
+}
+/*
 void playerGravity(playerContext *ctx){
     if(tileSolid((ctx->playerX/16),((ctx->playerY / 16))+1)){
-        return;
+        ctx->velocityY = 0 ;
+        ctx->grounded = true;
     }
     else{
-        ctx->playerY += 2;
+        ctx->velocityY = 3;
+        ctx->grounded = false;
+
     }
-}
+}*/
+#define JUMP_FORCE 15/*
+#define SPEED 1
 void doInputsPlayer(inputs *input,playerContext *ctxP){
-    if(input->buttonsHeld & KEY_LEFT){ctxP->playerX -= 2;}
-    if(input->buttonsHeld & KEY_RIGHT){ctxP->playerX += 2;}
-    if(input->buttonsDown & KEY_B){ctxP->playerY -= 20;}
+    static int jumpTime = 0;
+    //if(ctxP->grounded){
+        ctxP->velocityX = 0;
+        if(input->buttonsHeld & KEY_LEFT){
+            ctxP->velocityX -= SPEED;
+        }
+        if(input->buttonsHeld & KEY_RIGHT){
+            ctxP->velocityX += SPEED;
+        }
+        if(input->buttonsHeld & KEY_B){
+            ctxP->velocityY += -2;
+        }
+    //}
+
+    ctxP->playerX += ctxP->velocityX;
+    ctxP->playerY += ctxP->velocityY;
+}*/
+
+#define GRAVITY 2
+void playerPhysics(playerContext *ctx,inputs *input){
+    ctx->velocityX = 0;
+    if(input->buttonsHeld & KEY_LEFT){ctx->velocityX = -SPEED;}
+    if(input->buttonsHeld & KEY_RIGHT){ctx->velocityX = SPEED;}
+
+if(input->buttonsDown & KEY_B && ctx->grounded){
+    ctx->velocityY = -JUMP_FORCE;
+    ctx->grounded = false;
+} else if(!tileSolid((ctx->playerX/16), (ctx->playerY/16)+1)){
+    ctx->velocityY += GRAVITY;
+    ctx->grounded = false;
+} else {
+    ctx->velocityY = 0;
+    ctx->grounded = true;
+}
+    ctx->playerX += ctx->velocityX;
+    ctx->playerY += ctx->velocityY;
 }
 int main(int argc, char **argv)
 {
@@ -321,6 +376,7 @@ int main(int argc, char **argv)
     initBlocks();  
     editorContext ctxE = {};
     playerContext ctxP = {};
+    ctxP.grounded = true;
     ctxE.currentBlock = 1;
     worldCoordinates coords = {};
     coords.cameraY = ( GRID_Y * 16 )/2;
@@ -333,12 +389,13 @@ int main(int argc, char **argv)
         scanKeys(); 
         input.buttonsDown = keysDown();
         input.buttonsHeld = keysHeld();
+        input.buttonsUp = keysUp();
         
 
         switch(state){
             case EDITOR:
                 doInputsEditor(&coords,&input,&ctxE);
-                if(!PLAY_SCREEN){debugText(&coords, &input,&ctxE);}
+                if(state != PLAY_SCREEN){debugText(&coords, &input,&ctxE);} 
                 else{
                     ctxP.playerX = ctxE.flagPosX*16;
                     ctxP.playerY = ctxE.flagPosY*16;
@@ -346,16 +403,15 @@ int main(int argc, char **argv)
                 }
                 scrollLogic(&coords); 
                 NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 29,3);
-                gridX = coords.cameraX % 16;
-                gridY = coords.cameraY % 16;
-
                 break;
 
             
             case PLAY_SCREEN:
-                doInputsPlayer(&input,&ctxP);
+                //doInputsPlayer(&input,&ctxP);
+                playerPhysics(&ctxP,&input);
                 NF_MoveSprite(1,0,ctxP.playerX,ctxP.playerY);
-                playerGravity(&ctxP);
+                //playerGravity(&ctxP);
+                scrollLogic(&coords);
             
                 
 
@@ -367,7 +423,7 @@ int main(int argc, char **argv)
         swiWaitForVBlank();
         NF_UpdateVramMap(1, 3);
         NF_ScrollBg(1, 3,coords.scrollX,coords.scrollY);
-        NF_ScrollBg(1,2,gridX,gridY);
+        NF_ScrollBg(1,2,coords.cameraX % 16,coords.cameraY % 16);
         NF_UpdateTextLayers();
         oamUpdate(&oamMain);
         oamUpdate(&oamSub);
