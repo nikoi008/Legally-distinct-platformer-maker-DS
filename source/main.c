@@ -219,7 +219,7 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     if(input->buttonsDown & KEY_A){
         state = PLAY_SCREEN;
         
-        //unload grid, swap with seperate HUD
+        //unload grid, swap with seperate HUD <-- todo
         //NF_ClearTextLayer(1, 0); 
         NF_ShowSprite(1,1,false);
         NF_ShowSprite(1,2,false);
@@ -234,11 +234,11 @@ void updateOrigin(worldCoordinates *coords){
     coords->originTileY = coords->cameraTileY - 10;
 }
 
-void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx){
+void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx, playerContext *pctx){
     NF_ClearTextLayer(0, 0); 
     char buffer[64];
     
-    snprintf(buffer,sizeof(buffer),"X px %d Y px %d",coords->scrollX,coords->scrollY);
+    snprintf(buffer,sizeof(buffer),"scrollX px %d scrollY px %d",coords->scrollX,coords->scrollY);
     NF_WriteText(0,0,1,1,buffer);
 
     char camCord[64];
@@ -250,13 +250,17 @@ void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx){
     NF_WriteText(0,0,1,4,tilecoords);
 
     char ocord[64];
-    snprintf(ocord,sizeof(ocord),"oX %d oY %d",coords->originTileX,coords->originTileY);
+    snprintf(ocord,sizeof(ocord),"originX %d originY %d",coords->originTileX,coords->originTileY);
     NF_WriteText(0,0,1,5,ocord);
 
 
     char fcord[64];
-    snprintf(fcord,sizeof(fcord),"fX %d fY %d",ctx->flagPosX,ctx->flagPosY);
+    snprintf(fcord,sizeof(fcord),"flagX %d flagY %d",ctx->flagPosX,ctx->flagPosY);
     NF_WriteText(0,0,1,6,fcord);
+
+    char pCords[64];
+    snprintf(pCords,sizeof(pCords),"playerX %d playerY %d",pctx->playerX,pctx->playerY);
+    NF_WriteText(0,0,1,6,pCords);
 }
 
 void scrollLogic(worldCoordinates *coords){
@@ -280,55 +284,59 @@ bool checkCollision(rectangle rectA, rectangle rectB){
              rectA.topLeftY + rectA.height < rectB.topLeftY ||
              rectA.topLeftY > rectB.topLeftY + rectB.height);
 }
-/*
-void playerGravity(playerContext *ctx){
-    if(tileSolid((ctx->playerX/16),((ctx->playerY / 16))+1)){
-        ctx->velocityY = 0 ;
-        ctx->grounded = true;
-    }
-    else{
-        ctx->velocityY = 3;
-        ctx->grounded = false;
 
-    }
-}*/
-#define JUMP_FORCE 15/*
-#define SPEED 1
-void doInputsPlayer(inputs *input,playerContext *ctxP){
-    static int jumpTime = 0;
-    //if(ctxP->grounded){
-        ctxP->velocityX = 0;
-        if(input->buttonsHeld & KEY_LEFT){
-            ctxP->velocityX -= SPEED;
-        }
-        if(input->buttonsHeld & KEY_RIGHT){
-            ctxP->velocityX += SPEED;
-        }
-        if(input->buttonsHeld & KEY_B){
-            ctxP->velocityY += -2;
-        }
-    //}
-
-    ctxP->playerX += ctxP->velocityX;
-    ctxP->playerY += ctxP->velocityY;
-}*/
+#define JUMP_FORCE 15
 
 #define GRAVITY 2
-void playerPhysics(playerContext *ctx,inputs *input){
+/*
+void playerPhysics(playerContext *ctx,inputs *input,worldCoordinates *coords){
     ctx->velocityX = 0;
-    if(input->buttonsHeld & KEY_LEFT){ctx->velocityX = -SPEED;}
-    if(input->buttonsHeld & KEY_RIGHT){ctx->velocityX = SPEED;}
+    if(input->buttonsHeld & KEY_LEFT){
+        coords->scrollX += -SPEED;
+        coords->cameraX += -SPEED;
+        ctx->velocityX = -SPEED;
+    }
+    if(input->buttonsHeld & KEY_RIGHT){
+        coords->scrollX += SPEED;
+        coords->cameraX += SPEED;
+        ctx->velocityX = SPEED;
+        
+    }
+    if(input->buttonsDown & KEY_B && ctx->grounded){
+        coords->scrollY += -JUMP_FORCE;
+        coords->cameraY += -JUMP_FORCE;
+        ctx->velocityY = -JUMP_FORCE;
+        //ctx->grounded = false;
+    } else if(!tileSolid((ctx->playerX/16), (ctx->playerY/16)+1)){ //else if(!tileSolid((ctx->playerX/16), (ctx->playerY/16)+1)){
+        ctx->velocityY += GRAVITY;
+        coords->scrollY += GRAVITY;
+        coords->cameraY += GRAVITY;
+        ctx->grounded = false;
+    } else {
+        ctx->velocityY = 0;
+        ctx->grounded = true;
+    }
+    
+    ctx->playerX += ctx->velocityX; 
+    ctx->playerY += ctx->velocityY;
+}*/
 
-if(input->buttonsDown & KEY_B && ctx->grounded){
-    ctx->velocityY = -JUMP_FORCE;
-    ctx->grounded = false;
-} else if(!tileSolid((ctx->playerX/16), (ctx->playerY/16)+1)){
-    ctx->velocityY += GRAVITY;
-    ctx->grounded = false;
-} else {
-    ctx->velocityY = 0;
-    ctx->grounded = true;
-}
+void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
+    ctx->velocityX = 0;
+    if(input->buttonsHeld & KEY_LEFT)  ctx->velocityX = -SPEED;
+    if(input->buttonsHeld & KEY_RIGHT) ctx->velocityX =  SPEED;
+
+    if(input->buttonsDown & KEY_B && ctx->grounded){
+        ctx->velocityY = -JUMP_FORCE;
+        ctx->grounded = false;
+    } else if(!tileSolid(ctx->playerX/16, (ctx->playerY/16)+1)){
+        ctx->velocityY += GRAVITY;
+        ctx->grounded = false;
+    } else {
+        ctx->velocityY = 0;
+        ctx->grounded = true;
+    }
+
     ctx->playerX += ctx->velocityX;
     ctx->playerY += ctx->velocityY;
 }
@@ -395,29 +403,36 @@ int main(int argc, char **argv)
         switch(state){
             case EDITOR:
                 doInputsEditor(&coords,&input,&ctxE);
-                if(state != PLAY_SCREEN){debugText(&coords, &input,&ctxE);} 
-                else{
-                    ctxP.playerX = ctxE.flagPosX*16;
-                    ctxP.playerY = ctxE.flagPosY*16;
-                    //todo make sure that player camera is also centered to flagPos
-                }
                 scrollLogic(&coords); 
                 NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 29,3);
+                if(state == PLAY_SCREEN){ 
+                    ctxP.playerX = ctxE.flagPosX*16;
+                    ctxP.playerY = ctxE.flagPosY*16;
+                    coords.cameraX = ctxP.playerX - 128;
+                    coords.cameraY = ctxP.playerY - 96;
+                    coords.scrollX = 128;
+                    coords.scrollY = 160;
+                    scrollLogic(&coords); 
+                    updateTiles(&coords);
+
+                }
                 break;
 
             
-            case PLAY_SCREEN:
-                //doInputsPlayer(&input,&ctxP);
-                playerPhysics(&ctxP,&input);
-                NF_MoveSprite(1,0,ctxP.playerX,ctxP.playerY);
-                //playerGravity(&ctxP);
-                scrollLogic(&coords);
-            
-                
-
-
+                case PLAY_SCREEN:
+                playerPhysics(&ctxP, &input, &coords);
+                coords.cameraX = ctxP.playerX - 128;
+                coords.cameraY = ctxP.playerY - 96;
+                coords.cameraTileX = coordsToTile(coords.cameraX);
+                coords.cameraTileY = coordsToTile(coords.cameraY);
+                coords.scrollX = 128 + (coords.cameraX % 16);
+                coords.scrollY = 160 + (coords.cameraY % 16);
+                updateOrigin(&coords);
+                updateTiles(&coords);
+                NF_MoveSprite(1, 0, 128, 96);  
+                break;
         }
-    
+        debugText(&coords, &input,&ctxE,&ctxP);
         NF_SpriteOamSet(0);
         NF_SpriteOamSet(1);
         swiWaitForVBlank();
