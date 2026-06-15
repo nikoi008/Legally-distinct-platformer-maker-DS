@@ -58,6 +58,7 @@ typedef struct{
     int currentBlock;
     int flagPosX;
     int flagPosY;
+    bool rectFillOn;
 }editorContext;
 
 typedef struct{
@@ -173,6 +174,9 @@ void initialise(){
 inline bool tileSolid(int tileX,int tileY){
     return blocks[TILE_MAP[tileY][tileX]].solid;
 }
+
+int firstTouchX = -1; //todo add in editorcontext once done
+int firstTouchY = -1;
 void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     if (input->buttonsHeld & KEY_LEFT){ 
         coords->scrollX -= SPEED; 
@@ -201,8 +205,11 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         }
         updateTiles(coords); 
     }
+    if(input->buttonsDown & KEY_B){
+        ctxE->rectFillOn = true;
+    }
 
-    if (input->buttonsDown & KEY_TOUCH){
+    if (input->buttonsDown & KEY_TOUCH && !ctxE->rectFillOn){
         touchRead(&input->touchPos);
 
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
@@ -211,10 +218,34 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         if(input->touchPos.py <= 22){//hud width
             if(input->touchPos.px /16  <= 1 || input->touchPos.px /16 >= 14){
                 ctxE->currentBlock = (ctxE->currentBlock + 1)% TOTAL_BLOCKS;
-                
             }
         }
         updateTiles(coords); 
+    }
+    else if(ctxE->rectFillOn && (firstTouchX < 0 || firstTouchY < 0) && input->buttonsHeld & KEY_TOUCH){
+        touchRead(&input->touchPos);
+        firstTouchX = coordsToTile(input->touchPos.px + coords->cameraX );
+        firstTouchY = coordsToTile (input->touchPos.py + coords->cameraY );
+    }
+    else if(ctxE->rectFillOn && (firstTouchX > 0 || firstTouchY > 0) && input->buttonsHeld & KEY_TOUCH){
+        touchRead(&input->touchPos);
+        input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
+        input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+    }
+    else if(ctxE->rectFillOn && (firstTouchX > 0 || firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
+        ctxE->rectFillOn = false;
+        int highestX = (input->touchTileX >firstTouchX) ? input->touchTileX : firstTouchX;
+        int lowestX  = (input->touchTileX < firstTouchX) ? input->touchTileX : firstTouchX;
+        int highestY = (input->touchTileY> firstTouchY) ? input->touchTileY : firstTouchY;
+        int lowestY  = (input->touchTileY<firstTouchY) ? input->touchTileY : firstTouchY;
+        for(int i = lowestY; i < highestY + 1; i++){
+            for(int j = lowestX; j < highestX + 1; j++){
+                TILE_MAP[i][j] = ctxE->currentBlock;
+            }
+        }
+        updateTiles(coords);
+        firstTouchX = -1;
+        firstTouchY = -1;
     }
 
     if(input->buttonsDown & KEY_A){
@@ -262,6 +293,11 @@ void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx, playe
     char pCords[64];
     snprintf(pCords,sizeof(pCords),"playerX %d playerY %d",pctx->playerX,pctx->playerY);
     NF_WriteText(0,0,1,6,pCords);
+
+    char firstTouchCords[64];
+    snprintf(firstTouchCords,sizeof(firstTouchCords),"firstT %d firstT %d",firstTouchX,firstTouchY);
+    NF_WriteText(0,0,1,8,firstTouchCords);
+
 }
 
 void scrollLogic(worldCoordinates *coords){
@@ -324,7 +360,7 @@ int main(int argc, char **argv)
     srand(time(NULL));
     initialise();
 
-    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 20);//todo dont just add +10, m
+    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 20);//todo dont just add +10, 
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
 
 
@@ -358,6 +394,7 @@ int main(int argc, char **argv)
     playerContext ctxP = {};
     ctxP.grounded = true;
     ctxE.currentBlock = 1;
+    ctxE.rectFillOn = false;
     worldCoordinates coords = {};
     coords.cameraY = ( GRID_Y * 16 )/2;
     inputs input = {};
@@ -393,7 +430,7 @@ int main(int argc, char **argv)
                 playerScroll(&coords, &ctxP);
                 NF_MoveSprite(1, 0, 128, 96);
 
-                if(input.buttonsDown & KEY_TOUCH){
+                if(input.buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
                     NF_ShowSprite(1,1,true);
                     NF_ShowSprite(1,2,true);
                     NF_ShowSprite(1,3,true);
