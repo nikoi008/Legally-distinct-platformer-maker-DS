@@ -195,7 +195,7 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         coords->cameraY += SPEED;  
     }
 
-    if(input->buttonsHeld & KEY_TOUCH){
+    if(input->buttonsHeld & KEY_TOUCH && !ctxE->rectFillOn){
         touchRead(&input->touchPos);
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
@@ -231,6 +231,23 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         touchRead(&input->touchPos);
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+
+        int highestX = (input->touchTileX >firstTouchX) ? input->touchTileX : firstTouchX;
+        int lowestX  = (input->touchTileX < firstTouchX) ? input->touchTileX : firstTouchX;
+        int highestY = (input->touchTileY> firstTouchY) ? input->touchTileY : firstTouchY;
+        int lowestY  = (input->touchTileY<firstTouchY) ? input->touchTileY : firstTouchY;
+        for(int i = lowestY; i <= highestY; i++){
+            for(int j = lowestX; j <= highestX; j++){
+                int screenX = (j - coords->originTileX) * 2;
+                int screenY = (i - coords->originTileY) * 2;
+                if(screenX < 0 || screenX >= 64 || screenY < 0 || screenY >= 64) continue;
+                NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctxE->currentBlock].topLeftTile+64); //probably should define as an offset
+                NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctxE->currentBlock].topRightTile +64);
+                NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctxE->currentBlock].bottomLeftTile+64);
+                NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+64);
+            }
+        }
+
     }
     else if(ctxE->rectFillOn && (firstTouchX > 0 || firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
         ctxE->rectFillOn = false;
@@ -360,7 +377,7 @@ int main(int argc, char **argv)
     srand(time(NULL));
     initialise();
 
-    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 20);//todo dont just add +10, 
+    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 200);//todo dont just add +10, 
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
 
 
@@ -396,7 +413,7 @@ int main(int argc, char **argv)
     ctxE.currentBlock = 1;
     ctxE.rectFillOn = false;
     worldCoordinates coords = {};
-    coords.cameraY = ( GRID_Y * 16 )/2;
+    coords.cameraY =( GRID_Y * 16 )/2;
     inputs input = {};
     while (1)
     {
