@@ -30,6 +30,13 @@ typedef enum{
 } gameStates;
 gameStates state = MAIN_MENU;
 
+typedef enum{
+    IDLE,
+    WALKING,
+    JUMPING,
+    FALLING,
+}playerState;
+
 typedef struct{
     bool solid;
     void (*ifTouched)(void);
@@ -76,6 +83,8 @@ typedef struct{
     int velocityX;
     int velocityY;
     bool grounded;
+    int frame;
+    playerState currentState;
     
 }playerContext;
 
@@ -372,11 +381,26 @@ bool checkCollision(rectangle rectA, rectangle rectB){
              rectA.topLeftY + rectA.height < rectB.topLeftY ||
              rectA.topLeftY > rectB.topLeftY + rectB.height); // returns true if overlapping
 }
+void playerAnim(playerContext *ctx){
+    if(ctx->currentState == IDLE){
+        NF_SpriteFrame(1,5,0);
+    }else{
+        ctx->frame++;
+        NF_SpriteFrame(1,5,ctx->frame % 10);
+    }
+
+}
 
 void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
     ctx->velocityX = 0;
-    if(input->buttonsHeld & KEY_LEFT)  ctx->velocityX = -SPEED;
-    if(input->buttonsHeld & KEY_RIGHT) ctx->velocityX =  SPEED;
+    u16 bH = input->buttonsHeld;
+    if(bH & KEY_LEFT || bH & KEY_RIGHT){
+        ctx->currentState = WALKING;
+    }else{
+        ctx->currentState = IDLE;
+    }
+    if(input->buttonsHeld & KEY_LEFT){  ctx->velocityX = -SPEED; NF_HflipSprite(1,5,true); }
+    if(input->buttonsHeld & KEY_RIGHT){ ctx->velocityX =  SPEED; NF_HflipSprite(1,5,false);}
 
     if(input->buttonsDown & KEY_B && ctx->grounded){
         ctx->velocityY = -JUMP_FORCE;
@@ -439,10 +463,15 @@ int main(int argc, char **argv)
 
     NF_LoadSpriteGfx("bg/highlight",1,16,16);
     NF_LoadSpritePal("bg/highlight",1);
-    NF_VramSpriteGfx(1,1,1,false);
+    NF_VramSpriteGfx(1,1,1,true);
     NF_VramSpritePal(1,1,1);
     NF_CreateSprite(1,0,1,1,29,3);
 
+    NF_LoadSpriteGfx("bg/player",2,32,32); //todo probably make the sprite folder somewhat soon xx
+    NF_LoadSpritePal("bg/player",2);
+    NF_VramSpriteGfx(1,2,2,false);
+    NF_VramSpritePal(1,2,2);
+    NF_CreateSprite(1,5,2,2,100,50);
     initBlocks();  
 
     editorContext ctxE = {};
@@ -470,6 +499,7 @@ int main(int argc, char **argv)
             state = EDITOR;
             break;
             case EDITOR:
+                NF_ShowSprite(1,5,false);
                 doInputsEditor(&coords,&input,&ctxE);
                 scrollLogic(&coords); 
                 NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 29,3);
@@ -487,9 +517,12 @@ int main(int argc, char **argv)
 
             
                 case PLAY_SCREEN:
+                NF_ShowSprite(1,5,true);
+                playerAnim(&ctxP);
                 playerPhysics(&ctxP, &input, &coords);
                 playerScroll(&coords, &ctxP);
                 NF_MoveSprite(1, 0, 128, 96);
+                NF_MoveSprite(1, 5, 128, 96 - 10);
 
                 if(input.buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
                     NF_ShowSprite(1,1,true);
