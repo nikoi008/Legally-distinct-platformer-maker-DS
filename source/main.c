@@ -231,7 +231,7 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         touchRead(&input->touchPos);
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
-
+        updateTiles(coords);
         int highestX = (input->touchTileX >firstTouchX) ? input->touchTileX : firstTouchX;
         int lowestX  = (input->touchTileX < firstTouchX) ? input->touchTileX : firstTouchX;
         int highestY = (input->touchTileY> firstTouchY) ? input->touchTileY : firstTouchY;
@@ -247,6 +247,7 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
                 NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+64);
             }
         }
+        
 
     }
     else if(ctxE->rectFillOn && (firstTouchX > 0 || firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
