@@ -4,6 +4,9 @@
 #include <string.h>
 #include <nds.h>
 #include <filesystem.h>
+#include <fat.h>
+#include <sys/stat.h>
+
 
 #include <nf_lib.h>
 // ON DS  ONE TILE IS 8X8!!!!!! 
@@ -17,12 +20,15 @@
 #define TOTAL_BLOCKS 4
 #define TILE_LAYER 3
 #define BLACK 0 
+#define JUMP_FORCE 16
+#define GRAVITY 2
 
 typedef enum{
+    MAIN_MENU,
     EDITOR,
     PLAY_SCREEN
 } gameStates;
-gameStates state = EDITOR;
+gameStates state = MAIN_MENU;
 
 typedef struct{
     bool solid;
@@ -41,6 +47,7 @@ typedef struct{
     touchPosition touchPos;
     int touchTileX;
     int touchTileY;
+
 }inputs;
 
 typedef struct{
@@ -59,6 +66,8 @@ typedef struct{
     int flagPosX;
     int flagPosY;
     bool rectFillOn;
+    int firstTouchX;
+    int firstTouchY;
 }editorContext;
 
 typedef struct{
@@ -175,8 +184,24 @@ inline bool tileSolid(int tileX,int tileY){
     return blocks[TILE_MAP[tileY][tileX]].solid;
 }
 
-int firstTouchX = -1; //todo add in editorcontext once done
-int firstTouchY = -1;
+
+void saveLevel(char* name){
+    FILE *ptr = fopen(name, "wb");
+    if (!ptr) return;
+    fwrite(TILE_MAP, sizeof(u8), GRID_X * GRID_Y, ptr);
+    fclose(ptr);
+}
+
+
+void loadLevel(char* name,worldCoordinates *coords){
+    FILE *ptr = fopen(name, "rb");
+    if (!ptr) return;
+    fread(TILE_MAP, sizeof(u8), GRID_X * GRID_Y, ptr);
+    fclose(ptr);
+
+    updateTiles(coords);
+}
+
 void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     if (input->buttonsHeld & KEY_LEFT){ 
         coords->scrollX -= SPEED; 
@@ -222,20 +247,20 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         }
         updateTiles(coords); 
     }
-    else if(ctxE->rectFillOn && (firstTouchX < 0 || firstTouchY < 0) && input->buttonsHeld & KEY_TOUCH){
+    else if(ctxE->rectFillOn && (ctxE->firstTouchX < 0 || ctxE->firstTouchY < 0) && input->buttonsHeld & KEY_TOUCH){
         touchRead(&input->touchPos);
-        firstTouchX = coordsToTile(input->touchPos.px + coords->cameraX );
-        firstTouchY = coordsToTile (input->touchPos.py + coords->cameraY );
+        ctxE->firstTouchX = coordsToTile(input->touchPos.px + coords->cameraX );
+        ctxE->firstTouchY = coordsToTile (input->touchPos.py + coords->cameraY );
     }
-    else if(ctxE->rectFillOn && (firstTouchX > 0 || firstTouchY > 0) && input->buttonsHeld & KEY_TOUCH){
+    else if(ctxE->rectFillOn && (ctxE->firstTouchX > 0 || ctxE->firstTouchY > 0) && input->buttonsHeld & KEY_TOUCH){
         touchRead(&input->touchPos);
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
         updateTiles(coords);
-        int highestX = (input->touchTileX >firstTouchX) ? input->touchTileX : firstTouchX;
-        int lowestX  = (input->touchTileX < firstTouchX) ? input->touchTileX : firstTouchX;
-        int highestY = (input->touchTileY> firstTouchY) ? input->touchTileY : firstTouchY;
-        int lowestY  = (input->touchTileY<firstTouchY) ? input->touchTileY : firstTouchY;
+        int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+        int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+        int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+        int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
         for(int i = lowestY; i <= highestY; i++){
             for(int j = lowestX; j <= highestX; j++){
                 int screenX = (j - coords->originTileX) * 2;
@@ -250,20 +275,20 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         
 
     }
-    else if(ctxE->rectFillOn && (firstTouchX > 0 || firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
+    else if(ctxE->rectFillOn && (ctxE->firstTouchX > 0 || ctxE->firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
         ctxE->rectFillOn = false;
-        int highestX = (input->touchTileX >firstTouchX) ? input->touchTileX : firstTouchX;
-        int lowestX  = (input->touchTileX < firstTouchX) ? input->touchTileX : firstTouchX;
-        int highestY = (input->touchTileY> firstTouchY) ? input->touchTileY : firstTouchY;
-        int lowestY  = (input->touchTileY<firstTouchY) ? input->touchTileY : firstTouchY;
+        int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+        int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+        int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+        int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
         for(int i = lowestY; i < highestY + 1; i++){
             for(int j = lowestX; j < highestX + 1; j++){
                 TILE_MAP[i][j] = ctxE->currentBlock;
             }
         }
         updateTiles(coords);
-        firstTouchX = -1;
-        firstTouchY = -1;
+        ctxE->firstTouchX = -1;
+        ctxE->firstTouchY = -1;
     }
 
     if(input->buttonsDown & KEY_A){
@@ -277,6 +302,14 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         NF_ShowSprite(1,4,false);
         NF_DeleteTiledBg(1,2);
         lcdSwap();
+    }
+
+    if(input->buttonsDown & KEY_X){
+        saveLevel("fat:/YouMakeLevels/level.txt");
+    }
+
+    if(input->buttonsDown & KEY_Y){
+        loadLevel("fat:/YouMakeLevels/level.txt",coords);
     }
 }
 void updateOrigin(worldCoordinates *coords){
@@ -313,7 +346,7 @@ void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx, playe
     NF_WriteText(0,0,1,6,pCords);
 
     char firstTouchCords[64];
-    snprintf(firstTouchCords,sizeof(firstTouchCords),"firstT %d firstT %d",firstTouchX,firstTouchY);
+    snprintf(firstTouchCords,sizeof(firstTouchCords),"firstT %d firstT %d",ctx->firstTouchX,ctx->firstTouchY);
     NF_WriteText(0,0,1,8,firstTouchCords);
 
 }
@@ -340,8 +373,6 @@ bool checkCollision(rectangle rectA, rectangle rectB){
              rectA.topLeftY > rectB.topLeftY + rectB.height); // returns true if overlapping
 }
 
-#define JUMP_FORCE 16
-#define GRAVITY 2
 void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
     ctx->velocityX = 0;
     if(input->buttonsHeld & KEY_LEFT)  ctx->velocityX = -SPEED;
@@ -372,12 +403,17 @@ void playerScroll(worldCoordinates *coords, playerContext *ctxP){
     updateOrigin(coords);
     updateTiles(coords);
 }
+
+
+
+
+
 int main(int argc, char **argv)
 {
-
+    fatInitDefault();
     srand(time(NULL));
     initialise();
-
+    mkdir("fat:/YouMakeLevels", 0777);
     NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 200);//todo dont just add +10, 
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
 
@@ -408,14 +444,18 @@ int main(int argc, char **argv)
     NF_CreateSprite(1,0,1,1,29,3);
 
     initBlocks();  
+
     editorContext ctxE = {};
     playerContext ctxP = {};
     ctxP.grounded = true;
     ctxE.currentBlock = 1;
     ctxE.rectFillOn = false;
+    ctxE.firstTouchX = -1;
+    ctxE.firstTouchY = -1;
     worldCoordinates coords = {};
     coords.cameraY =( GRID_Y * 16 )/2;
     inputs input = {};
+
     while (1)
     {
 
@@ -426,6 +466,9 @@ int main(int argc, char **argv)
         
 
         switch(state){
+            case MAIN_MENU:
+            state = EDITOR;
+            break;
             case EDITOR:
                 doInputsEditor(&coords,&input,&ctxE);
                 scrollLogic(&coords); 
