@@ -18,8 +18,7 @@
 #include "debug.h"
 #include "init.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
     fatInitDefault();
     srand(time(NULL));
     initialise();
@@ -102,7 +101,7 @@ int main(int argc, char **argv)
                 break;
 
 
-                case PLAY_SCREEN:
+            case PLAY_SCREEN:
                 NF_ShowSprite(1,5,true);
                 playerAnim(&ctxP);
                 playerPhysics(&ctxP, &input, &coords);

@@ -19,8 +19,8 @@ void initBlocks(){
 
     blocks[2].solid = false; //flag
     blocks[2].ifTouched = NULL;
-    blocks[2].topLeftTile = 5;
-    blocks[2].topRightTile = 6;
+    blocks[2].topLeftTile = 0; //todo change to 5 and 6
+    blocks[2].topRightTile = 0;
     blocks[2].bottomLeftTile = 7;
     blocks[2].bottomRightTile = 8;
 

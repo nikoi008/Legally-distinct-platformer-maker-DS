@@ -22,6 +22,28 @@ void playerAnim(playerContext *ctx){
 
 }
 
+void resolveCollisions(playerContext *ctx){
+    
+}
+
+void xCollision(playerContext *player,bool leftDirection){
+    int predictedPlace = player->playerX + ((leftDirection == true) ? -16 : 16);
+    if(tileSolid(predictedPlace/16,player->playerY /  16)){
+        player->velocityX = 0;
+    }
+}
+
+void yCollision(playerContext *player){
+    if(player->grounded == false){
+        return;
+    }
+    int predictedY = player->playerY - JUMP_FORCE;
+    if(tileSolid(player->playerX / 16, predictedY / 16)){
+        player->velocityY = GRAVITY;
+    }
+}
+
+
 void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
     ctx->velocityX = 0;
     u16 bH = input->buttonsHeld;
@@ -31,12 +53,21 @@ void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
         ctx->currentState = IDLE;
     }
 
-    rectangle playerRect = {128,96,16,16};
-    rectangle playerLeft = {128 - 16,96,16,16};
-    rectangle playerRight = {128 + 32,96,16,16};
-    rectangle playerTop = {};
-    if(input->buttonsHeld & KEY_LEFT){  ctx->velocityX = -SPEED;ctx->hflip = true; NF_HflipSprite(1,5,ctx->hflip); } //todo probably dont use hflip sprite, as origin is also flipped. better to just make an extra 10 frames??
-    if(input->buttonsHeld & KEY_RIGHT){ ctx->velocityX =  SPEED;ctx->hflip = false; NF_HflipSprite(1,5,ctx->hflip);}
+    //rectangle playerRect = {128,96,16,16};
+    //rectangle playerLeft = {128 - 16,96,16,16};
+    //rectangle playerRight = {128 + 32,96,16,16};
+    //rectangle playerTop = {};
+    if(input->buttonsHeld & KEY_LEFT){  
+        ctx->velocityX = -SPEED;ctx->hflip = true; 
+        NF_HflipSprite(1,5,ctx->hflip); 
+        xCollision(ctx,true);
+    } //todo probably dont use hflip sprite, as origin is also flipped. better to just make an extra 10 frames?? 
+    if(input->buttonsHeld & KEY_RIGHT){
+        ctx->velocityX =  SPEED;
+        ctx->hflip = false;
+        NF_HflipSprite(1,5,ctx->hflip);
+        xCollision(ctx,false);
+    }
 
     if(input->buttonsDown & KEY_B && ctx->grounded){
         ctx->velocityY = -JUMP_FORCE;
@@ -47,8 +78,9 @@ void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
     } else {
         ctx->velocityY = 0;
         ctx->grounded = true;
+        
     }
-
+    yCollision(ctx);
     ctx->playerX += ctx->velocityX;
     ctx->playerY += ctx->velocityY;
 }

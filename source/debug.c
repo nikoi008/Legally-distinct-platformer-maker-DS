@@ -36,4 +36,7 @@ void debugText(worldCoordinates *coords, inputs *input,editorContext *ctx, playe
     snprintf(firstTouchCords,sizeof(firstTouchCords),"firstT %d firstT %d",ctx->firstTouchX,ctx->firstTouchY);
     NF_WriteText(0,0,1,8,firstTouchCords);
 
+    //char tilePredicted[32];
+  //  snprintf(tilePredicted,sizeof(tilePredicted),"%d",)
+
 }
