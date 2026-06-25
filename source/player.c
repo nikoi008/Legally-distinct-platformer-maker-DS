@@ -59,8 +59,6 @@ void yCollision(playerContext *player){ //TODO implement aabb because this will 
     }
 }
 
-
-
 void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
     ctx->velocityX = 0;
     u16 bH = input->buttonsHeld;

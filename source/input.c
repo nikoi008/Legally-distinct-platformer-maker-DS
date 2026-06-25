@@ -7,20 +7,58 @@
 #include "blocks.h"
 #include "tilemap.h"
 
+
+void rectangleFillPreview(editorContext *ctxE,inputs *input,worldCoordinates *coords){
+    touchRead(&input->touchPos);
+    input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
+    input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+    updateTiles(coords);
+    int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+    int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+    int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+    int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+    for(int i = lowestY; i <= highestY; i++){
+        for(int j = lowestX; j <= highestX; j++){
+            int screenX = (j - coords->originTileX) * 2;
+            int screenY = (i - coords->originTileY) * 2;
+            if(screenX < 0 || screenX >= 64 || screenY < 0 || screenY >= 64) continue;
+            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctxE->currentBlock].topLeftTile+64); //probably should define as an offset
+            NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctxE->currentBlock].topRightTile +64);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctxE->currentBlock].bottomLeftTile+64);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+64);
+        }
+    }
+}
+
+void fill(editorContext *ctxE,inputs *input,worldCoordinates *coords){
+    ctxE->rectFillOn = false;
+    int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+    int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
+    int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+    int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+    for(int i = lowestY; i < highestY + 1; i++){
+        for(int j = lowestX; j < highestX + 1; j++){
+            TILE_MAP[i][j] = ctxE->currentBlock;
+        }
+    }
+    updateTiles(coords);
+    ctxE->firstTouchX = -1;
+    ctxE->firstTouchY = -1;
+}
 void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
-    if (input->buttonsHeld & KEY_LEFT){
+    if (input->buttonsHeld & KEY_LEFT && coords->cameraX >= 0){
         coords->scrollX -= SPEED;
         coords->cameraX -=SPEED;
     }
-    if (input->buttonsHeld & KEY_RIGHT){
+    if (input->buttonsHeld & KEY_RIGHT && coords->cameraX <= GRID_X * 16){
         coords->scrollX += SPEED;
         coords->cameraX += SPEED;
     }
-    if (input->buttonsHeld & KEY_UP){
+    if (input->buttonsHeld & KEY_UP && coords->cameraY >= 0){
         coords->scrollY -= SPEED;
         coords->cameraY -= SPEED;
     }
-    if (input->buttonsHeld & KEY_DOWN){
+    if (input->buttonsHeld & KEY_DOWN && coords->cameraY <= GRID_Y * 16){
         coords->scrollY += SPEED;
         coords->cameraY += SPEED;
     }
@@ -35,8 +73,8 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         }
         updateTiles(coords);
     }
-    if(input->buttonsDown & KEY_B){
-        ctxE->rectFillOn = true;
+    if(input->buttonsDown & KEY_B && ctxE->currentBlock != 2){
+        ctxE->rectFillOn = !ctxE->rectFillOn;
     }
 
     if (input->buttonsDown & KEY_TOUCH && !ctxE->rectFillOn){
@@ -58,42 +96,10 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         ctxE->firstTouchY = coordsToTile (input->touchPos.py + coords->cameraY );
     }
     else if(ctxE->rectFillOn && (ctxE->firstTouchX > 0 || ctxE->firstTouchY > 0) && input->buttonsHeld & KEY_TOUCH){
-        touchRead(&input->touchPos);
-        input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
-        input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
-        updateTiles(coords);
-        int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-        int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-        int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
-        int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
-        for(int i = lowestY; i <= highestY; i++){
-            for(int j = lowestX; j <= highestX; j++){
-                int screenX = (j - coords->originTileX) * 2;
-                int screenY = (i - coords->originTileY) * 2;
-                if(screenX < 0 || screenX >= 64 || screenY < 0 || screenY >= 64) continue;
-                NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctxE->currentBlock].topLeftTile+64); //probably should define as an offset
-                NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctxE->currentBlock].topRightTile +64);
-                NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctxE->currentBlock].bottomLeftTile+64);
-                NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+64);
-            }
-        }
-
-
+        rectangleFillPreview(ctxE,input,coords);
     }
     else if(ctxE->rectFillOn && (ctxE->firstTouchX > 0 || ctxE->firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
-        ctxE->rectFillOn = false;
-        int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-        int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-        int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
-        int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
-        for(int i = lowestY; i < highestY + 1; i++){
-            for(int j = lowestX; j < highestX + 1; j++){
-                TILE_MAP[i][j] = ctxE->currentBlock;
-            }
-        }
-        updateTiles(coords);
-        ctxE->firstTouchX = -1;
-        ctxE->firstTouchY = -1;
+        fill(ctxE,input,coords);
     }
 
     if(input->buttonsDown & KEY_A){
