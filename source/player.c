@@ -22,26 +22,43 @@ void playerAnim(playerContext *ctx){
 
 }
 
-void resolveCollisions(playerContext *ctx){
-    
-}
-
 void xCollision(playerContext *player,bool leftDirection){
-    int predictedPlace = player->playerX + ((leftDirection == true) ? -16 : 16);
+    int predictedPlace = player->playerX + ((leftDirection == true) ? -1 : 1 + 16);
     if(tileSolid(predictedPlace/16,player->playerY /  16)){
         player->velocityX = 0;
     }
 }
+/**
+void checkCeiling(playerContext *ctx){
 
-void yCollision(playerContext *player){
-    if(player->grounded == false){
-        return;
-    }
-    int predictedY = player->playerY - JUMP_FORCE;
-    if(tileSolid(player->playerX / 16, predictedY / 16)){
-        player->velocityY = GRAVITY;
+}
+
+void checkGround(playerContext *ctx){
+
+}*/
+ 
+void yCollision(playerContext *player){ //TODO implement aabb because this will bite me in the back when enemies are implemented
+    if(player->velocityY > 0){
+
+        int predictedBottomY = player->playerY + player->velocityY + 15;
+
+        if(tileSolid(player->playerX / 16,predictedBottomY / 16) || tileSolid((player->playerX + 15) / 16, predictedBottomY / 16)){
+            player->playerY = (predictedBottomY / 16) * 16 - 16;
+            player->velocityY = 0;
+            player->grounded = true;
+        }
+
+    } else if(player->velocityY < 0){
+
+        int predictedTopY = player->playerY + player->velocityY;
+        if(tileSolid(player->playerX / 16, predictedTopY / 16) || tileSolid((player->playerX + 15) / 16, predictedTopY / 16)){
+
+            player->playerY = ((predictedTopY / 16) + 1) * 16;
+            player->velocityY = 0;
+        }
     }
 }
+
 
 
 void playerPhysics(playerContext *ctx, inputs *input, worldCoordinates *coords){
