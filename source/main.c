@@ -85,6 +85,7 @@ int main(int argc, char **argv){
             break;
             case EDITOR:
                 NF_ShowSprite(1,5,false);
+                 NF_ShowSprite(1,0,true);
                 editorFrame(&coords,&input,&ctxE);
                 scrollLogic(&coords);
                 NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 28,3);
@@ -109,9 +110,10 @@ int main(int argc, char **argv){
                 if(ctxP.hflip == false){
                     NF_MoveSprite(1, 5, 128, 96 - 16);
                 }else{
-                   NF_MoveSprite(1, 5, 128 - 16, 96 - 16);
+                    NF_MoveSprite(1, 5, 128 - 16, 96 - 16);
                 }
-                NF_MoveSprite(1, 0, 128, 96);
+                //NF_MoveSprite(1, 0, 128, 96); uncomment to see hitbox
+                NF_ShowSprite(1,0,false); //COMMENT TO SEE hitbx
 
                 if(input.buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
                     NF_ShowSprite(1,1,true);

@@ -14,5 +14,7 @@
 #define BLACK 0
 #define JUMP_FORCE 16
 #define GRAVITY 2
+#define TRANSPARENT_BLOCK_OFFSET 64 // ie the green blocks
+#define HUD_Y_START 22
 
 #endif

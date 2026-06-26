@@ -2,6 +2,14 @@
 #include "globals.h"
 #include "defines.h"
 
+
+
+void backToEditor(){
+   // state = EDITOR; need to do a bit more than that
+}
+
+
+
 void initBlocks(){
     blocks[0].solid = false; //air
     blocks[0].ifTouched = NULL;
@@ -25,7 +33,7 @@ void initBlocks(){
     blocks[2].bottomRightTile = 8;
 
     blocks[3].solid = true;//spike
-    blocks[3].ifTouched = NULL;
+    blocks[3].ifTouched = backToEditor;
     blocks[3].topLeftTile = 9;
     blocks[3].topRightTile = 10;
     blocks[3].bottomLeftTile = 11;
@@ -49,3 +57,4 @@ void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
     }
     TILE_MAP[tileY][tileX] = currentBlock;
 }
+

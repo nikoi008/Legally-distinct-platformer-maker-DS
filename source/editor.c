@@ -8,8 +8,8 @@
 #include "tilemap.h"
 
 
-void rectangleFillPreview(editorContext *ctxE,inputs *input,worldCoordinates *coords){
-    touchRead(&input->touchPos);
+void rectangleFillPreview(editorContext *ctxE,inputs *input,worldCoordinates *coords){ // causes huge lag when rectangles are large.. todo optimise??
+    touchRead(&input->touchPos);                                                        // might just be emu lag??? desmume struggles but melonds is fine????? todo test on real ds
     input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
     input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
     updateTiles(coords);
@@ -22,10 +22,10 @@ void rectangleFillPreview(editorContext *ctxE,inputs *input,worldCoordinates *co
             int screenX = (j - coords->originTileX) * 2;
             int screenY = (i - coords->originTileY) * 2;
             if(screenX < 0 || screenX >= 64 || screenY < 0 || screenY >= 64) continue;
-            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctxE->currentBlock].topLeftTile+64); //probably should define as an offset
-            NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctxE->currentBlock].topRightTile +64);
-            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctxE->currentBlock].bottomLeftTile+64);
-            NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+64);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctxE->currentBlock].topLeftTile+ TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctxE->currentBlock].topRightTile + TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctxE->currentBlock].bottomLeftTile+ TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+ TRANSPARENT_BLOCK_OFFSET);
         }
     }
 }
@@ -45,7 +45,7 @@ void fill(editorContext *ctxE,inputs *input,worldCoordinates *coords){
     ctxE->firstTouchX = -1;
     ctxE->firstTouchY = -1;
 }
-#define HUD_Y_START 22
+
 void editorInputKeys(worldCoordinates *coords,inputs *input){
     if (input->buttonsHeld & KEY_LEFT && coords->cameraX >= 0){
         coords->scrollX -= SPEED;

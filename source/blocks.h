@@ -2,6 +2,7 @@
 #define BLOCKS_H
 
 #include "types.h"
+void backToEditor();
 
 void initBlocks(void);
 
