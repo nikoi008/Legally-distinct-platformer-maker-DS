@@ -1,7 +1,7 @@
 #include <nds.h>
 #include <nf_lib.h>
 
-#include "input.h"
+#include "editor.h"
 #include "globals.h"
 #include "defines.h"
 #include "blocks.h"
@@ -45,7 +45,8 @@ void fill(editorContext *ctxE,inputs *input,worldCoordinates *coords){
     ctxE->firstTouchX = -1;
     ctxE->firstTouchY = -1;
 }
-void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
+#define HUD_Y_START 22
+void editorInputKeys(worldCoordinates *coords,inputs *input){
     if (input->buttonsHeld & KEY_LEFT && coords->cameraX >= 0){
         coords->scrollX -= SPEED;
         coords->cameraX -=SPEED;
@@ -62,13 +63,17 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         coords->scrollY += SPEED;
         coords->cameraY += SPEED;
     }
+}
+void editorFrame(worldCoordinates *coords,inputs *input,editorContext *ctxE){
+
+    editorInputKeys(coords,input);
 
     if(input->buttonsHeld & KEY_TOUCH && !ctxE->rectFillOn){
         touchRead(&input->touchPos);
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
 
-        if(input->touchPos.py >= 22){//hud width
+        if(input->touchPos.py >= HUD_Y_START){//hud width
             addTile(input->touchTileX,input->touchTileY,ctxE->currentBlock,ctxE);
         }
         updateTiles(coords);
@@ -83,9 +88,12 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
         input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
 
-        if(input->touchPos.py <= 22){//hud width
-            if(input->touchPos.px /16  <= 1 || input->touchPos.px /16 >= 14){
-                ctxE->currentBlock = (ctxE->currentBlock + 1)% TOTAL_BLOCKS;
+        if(input->touchPos.py <= HUD_Y_START){//hud width
+            if(input->touchPos.px /16  <= 1){
+                ctxE->currentBlock = abs((ctxE->currentBlock - 1)% TOTAL_BLOCKS);
+            }
+            if(input->touchPos.px /16 >= 14){
+                ctxE->currentBlock = abs((ctxE->currentBlock + 1)% TOTAL_BLOCKS);
             }
         }
         updateTiles(coords);
@@ -105,8 +113,7 @@ void doInputsEditor(worldCoordinates *coords,inputs *input,editorContext *ctxE){
     if(input->buttonsDown & KEY_A){
         state = PLAY_SCREEN;
 
-        //unload grid, swap with seperate HUD <-- todo
-        //NF_ClearTextLayer(1, 0);
+        //swap with seperate HUD <-- todo
         NF_ShowSprite(1,1,false);
         NF_ShowSprite(1,2,false);
         NF_ShowSprite(1,3,false);

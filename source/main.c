@@ -12,7 +12,7 @@
 #include "globals.h"
 #include "blocks.h"
 #include "tilemap.h"
-#include "input.h"
+#include "editor.h"
 #include "camera.h"
 #include "player.h"
 #include "debug.h"
@@ -40,9 +40,9 @@ int main(int argc, char **argv){
     NF_CreateSprite(1, 4, 0, 0, 0, 0);
 
     NF_CreateSprite(1, 1, 0, 0, 64, 0);
-    NF_SpriteFrame(1, 1, 1);
+    NF_SpriteFrame(1, 1, 0);
     NF_CreateSprite(1, 2, 0, 0, 128, 0);
-    NF_SpriteFrame(1, 2, 3);
+    NF_SpriteFrame(1, 2, 1);
     NF_CreateSprite(1, 3, 0, 0, 192, 0);
     NF_SpriteFrame(1, 3, 2); //all hud elements + frames
 
@@ -85,9 +85,9 @@ int main(int argc, char **argv){
             break;
             case EDITOR:
                 NF_ShowSprite(1,5,false);
-                doInputsEditor(&coords,&input,&ctxE);
+                editorFrame(&coords,&input,&ctxE);
                 scrollLogic(&coords);
-                NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 29,3);
+                NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 28,3);
                 if(state == PLAY_SCREEN){
                     ctxP.playerX = ctxE.flagPosX*16;
                     ctxP.playerY = ctxE.flagPosY*16;
