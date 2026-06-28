@@ -8,114 +8,114 @@
 #include "tilemap.h"
 
 
-void rectangleFillPreview(editorContext *ctxE,inputs *input,worldCoordinates *coords){ // causes huge lag when rectangles are large.. todo optimise??
-    touchRead(&input->touchPos);                                                        // might just be emu lag??? desmume struggles but melonds is fine????? todo test on real ds
-    input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
-    input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
-    updateTiles(coords);
-    int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-    int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-    int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
-    int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+void rectangleFillPreview(gameContext *ctx){ // causes huge lag when rectangles are large.. todo optimise??
+    touchRead(&ctx->input->touchPos);                                                        // might just be emu lag??? desmume struggles but melonds is fine????? todo test on real ds
+    ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+    ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
+    updateTiles(ctx);
+    int highestX = (ctx->input->touchTileX > ctx->editor->firstTouchX) ? ctx->input->touchTileX : ctx->editor->firstTouchX;
+    int lowestX  = (ctx->input->touchTileX < ctx->editor->firstTouchX) ? ctx->input->touchTileX : ctx->editor->firstTouchX;
+    int highestY = (ctx->input->touchTileY> ctx->editor->firstTouchY) ? ctx->input->touchTileY : ctx->editor->firstTouchY;
+    int lowestY  = (ctx->input->touchTileY<ctx->editor->firstTouchY) ? ctx->input->touchTileY : ctx->editor->firstTouchY;
     for(int i = lowestY; i <= highestY; i++){
         for(int j = lowestX; j <= highestX; j++){
-            int screenX = (j - coords->originTileX) * 2;
-            int screenY = (i - coords->originTileY) * 2;
+            int screenX = (j - ctx->coords->originTileX) * 2;
+            int screenY = (i - ctx->coords->originTileY) * 2;
             if(screenX < 0 || screenX >= 64 || screenY < 0 || screenY >= 64) continue;
-            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctxE->currentBlock].topLeftTile+ TRANSPARENT_BLOCK_OFFSET);
-            NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctxE->currentBlock].topRightTile + TRANSPARENT_BLOCK_OFFSET);
-            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctxE->currentBlock].bottomLeftTile+ TRANSPARENT_BLOCK_OFFSET);
-            NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctxE->currentBlock].bottomRightTile+ TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY,  blocks[ctx->editor->currentBlock].topLeftTile+ TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX+1,screenY,blocks[ctx->editor->currentBlock].topRightTile + TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX,screenY+1,blocks[ctx->editor->currentBlock].bottomLeftTile+ TRANSPARENT_BLOCK_OFFSET);
+            NF_SetTileOfMap(1, TILE_LAYER, screenX+1, screenY+1,blocks[ctx->editor->currentBlock].bottomRightTile+ TRANSPARENT_BLOCK_OFFSET);
         }
     }
 }
 
-void fill(editorContext *ctxE,inputs *input,worldCoordinates *coords){
-    ctxE->rectFillOn = false;
-    int highestX = (input->touchTileX >ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-    int lowestX  = (input->touchTileX < ctxE->firstTouchX) ? input->touchTileX : ctxE->firstTouchX;
-    int highestY = (input->touchTileY> ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
-    int lowestY  = (input->touchTileY<ctxE->firstTouchY) ? input->touchTileY : ctxE->firstTouchY;
+void fill(gameContext *ctx){
+    ctx->editor->rectFillOn = false;
+    int highestX = (ctx->input->touchTileX > ctx->editor->firstTouchX) ? ctx->input->touchTileX : ctx->editor->firstTouchX;
+    int lowestX  = (ctx->input->touchTileX < ctx->editor->firstTouchX) ? ctx->input->touchTileX : ctx->editor->firstTouchX;
+    int highestY = (ctx->input->touchTileY> ctx->editor->firstTouchY) ? ctx->input->touchTileY : ctx->editor->firstTouchY;
+    int lowestY  = (ctx->input->touchTileY<ctx->editor->firstTouchY) ? ctx->input->touchTileY : ctx->editor->firstTouchY;
     for(int i = lowestY; i < highestY + 1; i++){
         for(int j = lowestX; j < highestX + 1; j++){
-            TILE_MAP[i][j] = ctxE->currentBlock;
+            TILE_MAP[i][j] = ctx->editor->currentBlock;
         }
     }
-    updateTiles(coords);
-    ctxE->firstTouchX = -1;
-    ctxE->firstTouchY = -1;
+    updateTiles(ctx);
+    ctx->editor->firstTouchX = -1;
+    ctx->editor->firstTouchY = -1;
 }
 
-void editorInputKeys(worldCoordinates *coords,inputs *input){
-    if (input->buttonsHeld & KEY_LEFT && coords->cameraX >= 0){
-        coords->scrollX -= SPEED;
-        coords->cameraX -=SPEED;
+void editorInputKeys(gameContext *ctx){
+    if (ctx->input->buttonsHeld & KEY_LEFT && ctx->coords->cameraX >= 0){
+        ctx->coords->scrollX -= SPEED;
+        ctx->coords->cameraX -=SPEED;
     }
-    if (input->buttonsHeld & KEY_RIGHT && coords->cameraX <= GRID_X * 16){
-        coords->scrollX += SPEED;
-        coords->cameraX += SPEED;
+    if (ctx->input->buttonsHeld & KEY_RIGHT && ctx->coords->cameraX <= GRID_X * 16){
+        ctx->coords->scrollX += SPEED;
+        ctx->coords->cameraX += SPEED;
     }
-    if (input->buttonsHeld & KEY_UP && coords->cameraY >= 0){
-        coords->scrollY -= SPEED;
-        coords->cameraY -= SPEED;
+    if (ctx->input->buttonsHeld & KEY_UP && ctx->coords->cameraY >= 0){
+        ctx->coords->scrollY -= SPEED;
+        ctx->coords->cameraY -= SPEED;
     }
-    if (input->buttonsHeld & KEY_DOWN && coords->cameraY <= GRID_Y * 16){
-        coords->scrollY += SPEED;
-        coords->cameraY += SPEED;
+    if (ctx->input->buttonsHeld & KEY_DOWN && ctx->coords->cameraY <= GRID_Y * 16){
+        ctx->coords->scrollY += SPEED;
+        ctx->coords->cameraY += SPEED;
     }
 }
-void editorFrame(worldCoordinates *coords,inputs *input,editorContext *ctxE){
+void editorFrame(gameContext *ctx){
 
-    editorInputKeys(coords,input);
+    editorInputKeys(ctx);
 
-    if(input->buttonsHeld & KEY_TOUCH && !ctxE->rectFillOn){
-        touchRead(&input->touchPos);
-        input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
-        input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+    if(ctx->input->buttonsHeld & KEY_TOUCH && !ctx->editor->rectFillOn){
+        touchRead(&ctx->input->touchPos);
+        ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+        ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
 
-        if(input->touchPos.py >= HUD_Y_START){//hud width
-            addTile(input->touchTileX,input->touchTileY,ctxE->currentBlock,ctxE);
+        if(ctx->input->touchPos.py >= HUD_Y_START){//hud width
+            addTile(ctx->input->touchTileX,ctx->input->touchTileY,ctx->editor->currentBlock,ctx->editor);
         }
-        updateTiles(coords);
+        updateTiles(ctx);
     }
-    if(input->buttonsDown & KEY_B && ctxE->currentBlock != 2){
-        ctxE->rectFillOn = !ctxE->rectFillOn;
+    if(ctx->input->buttonsDown & KEY_B && ctx->editor->currentBlock != 2){
+        ctx->editor->rectFillOn = !ctx->editor->rectFillOn;
     }
 
-    if (input->buttonsDown & KEY_TOUCH && !ctxE->rectFillOn){
-        touchRead(&input->touchPos);
+    if (ctx->input->buttonsDown & KEY_TOUCH && !ctx->editor->rectFillOn){
+        touchRead(&ctx->input->touchPos);
 
-        input->touchTileX = coordsToTile(input->touchPos.px + coords->cameraX );
-        input->touchTileY = coordsToTile (input->touchPos.py + coords->cameraY );
+        ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+        ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
 
-        if(input->touchPos.py <= HUD_Y_START){//hud width
-            if(input->touchPos.px /16  <= 1){
-                ctxE->currentBlock = abs((ctxE->currentBlock - 1)% TOTAL_BLOCKS);
+        if(ctx->input->touchPos.py <= HUD_Y_START){//hud width
+            if(ctx->input->touchPos.px /16  <= 1){
+                ctx->editor->currentBlock = abs((ctx->editor->currentBlock - 1)% TOTAL_BLOCKS);
             }
-            else if(input->touchPos.px /16 >= 14){
-                ctxE->currentBlock = abs((ctxE->currentBlock + 1)% TOTAL_BLOCKS);
+            else if(ctx->input->touchPos.px /16 >= 14){
+                ctx->editor->currentBlock = abs((ctx->editor->currentBlock + 1)% TOTAL_BLOCKS);
             }
             else{
                 //NF_MoveSprite(1,0,(ctxE.currentBlock * 20) + 30,3);
-                int touchBlock = (input->touchPos.px - 30)/ 20;
-                if(touchBlock < TOTAL_BLOCKS){ctxE->currentBlock = touchBlock;}
+                int touchBlock = (ctx->input->touchPos.px - 30)/ 20;
+                if(touchBlock < TOTAL_BLOCKS){ctx->editor->currentBlock = touchBlock;}
             }
         }
-        updateTiles(coords);
+        updateTiles(ctx);
     }
-    else if(ctxE->rectFillOn && (ctxE->firstTouchX < 0 || ctxE->firstTouchY < 0) && input->buttonsHeld & KEY_TOUCH){
-        touchRead(&input->touchPos);
-        ctxE->firstTouchX = coordsToTile(input->touchPos.px + coords->cameraX );
-        ctxE->firstTouchY = coordsToTile (input->touchPos.py + coords->cameraY );
+    else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX < 0 || ctx->editor->firstTouchY < 0) && ctx->input->buttonsHeld & KEY_TOUCH){
+        touchRead(&ctx->input->touchPos);
+        ctx->editor->firstTouchX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+        ctx->editor->firstTouchY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
     }
-    else if(ctxE->rectFillOn && (ctxE->firstTouchX > 0 || ctxE->firstTouchY > 0) && input->buttonsHeld & KEY_TOUCH){
-        rectangleFillPreview(ctxE,input,coords);
+    else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsHeld & KEY_TOUCH){
+        rectangleFillPreview(ctx);
     }
-    else if(ctxE->rectFillOn && (ctxE->firstTouchX > 0 || ctxE->firstTouchY > 0) && input->buttonsUp & KEY_TOUCH){
-        fill(ctxE,input,coords);
+    else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsUp & KEY_TOUCH){
+        fill(ctx);
     }
 
-    if(input->buttonsDown & KEY_A){
+    if(ctx->input->buttonsDown & KEY_A){
         state = PLAY_SCREEN;
 
         //swap with seperate HUD <-- todo
@@ -127,11 +127,11 @@ void editorFrame(worldCoordinates *coords,inputs *input,editorContext *ctxE){
         lcdSwap();
     }
 
-    if(input->buttonsDown & KEY_X){
+    if(ctx->input->buttonsDown & KEY_X){
         saveLevel("fat:/YouMakeLevels/level.txt");
     }
 
-    if(input->buttonsDown & KEY_Y){
-        loadLevel("fat:/YouMakeLevels/level.txt",coords);
+    if(ctx->input->buttonsDown & KEY_Y){
+        loadLevel("fat:/YouMakeLevels/level.txt",ctx);
     }
 }

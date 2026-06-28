@@ -6,10 +6,10 @@
 #include "globals.h"
 #include "defines.h"
 
-void updateTiles(worldCoordinates *coords)
+void updateTiles(gameContext *ctx)
 {
-    int oY = coords->originTileY;
-    int oX = coords->originTileX;
+    int oY = ctx->coords->originTileY;
+    int oX = ctx->coords->originTileX;
     for(int y = oY; y < oY + MAP_Y; y++){
         for(int x = oX; x < oX + MAP_X; x++){
             int coordX = x - oX;
@@ -34,11 +34,11 @@ void saveLevel(char* name){
     fclose(ptr);
 }
 
-void loadLevel(char* name,worldCoordinates *coords){
+void loadLevel(char* name,gameContext *ctx){
     FILE *ptr = fopen(name, "rb");
     if (!ptr) return;
     fread(TILE_MAP, sizeof(u8), GRID_X * GRID_Y, ptr);
     fclose(ptr);
 
-    updateTiles(coords);
+    updateTiles(ctx);
 }

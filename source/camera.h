@@ -3,10 +3,10 @@
 
 #include "types.h"
 
-void updateOrigin(worldCoordinates *coords);
+void updateOrigin(gameContext *ctx);
 
-void scrollLogic(worldCoordinates *coords);
+void scrollLogic(gameContext *ctx);
 
-void playerScroll(worldCoordinates *coords, playerContext *ctxP);
+void playerScroll(gameContext *ctx);
 
 #endif

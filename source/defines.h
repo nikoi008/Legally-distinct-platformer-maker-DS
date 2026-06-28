@@ -9,7 +9,7 @@
 #define GRID_X 1024
 #define GRID_Y 1024 //16kx16k may be a bit overkill
 #define ROW_LENGTH 16
-#define TOTAL_BLOCKS 4
+#define TOTAL_BLOCKS 5
 #define TILE_LAYER 3
 #define BLACK 0
 #define JUMP_FORCE 16

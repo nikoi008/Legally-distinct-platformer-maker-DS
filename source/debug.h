@@ -3,6 +3,6 @@
 
 #include "types.h"
 
-void debugText(worldCoordinates *coords, inputs *input, editorContext *ctx, playerContext *pctx);
+void debugText(gameContext *ctx);
 
 #endif

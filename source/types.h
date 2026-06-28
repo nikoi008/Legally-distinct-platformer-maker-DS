@@ -16,6 +16,7 @@ typedef enum{
     FALLING,
 }playerState;
 
+
 typedef struct{
     bool solid;
     void (*ifTouched)(void);
@@ -74,4 +75,11 @@ typedef struct{
     int height;
 }rectangle;
 
+typedef struct
+{
+    worldCoordinates *coords;
+    playerContext *player;
+    editorContext *editor;
+    inputs *input;
+}gameContext;
 #endif

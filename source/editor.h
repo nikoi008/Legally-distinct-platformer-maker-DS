@@ -3,12 +3,12 @@
 
 #include "types.h"
 
-void rectangleFillPreview(editorContext *ctxE,inputs *input,worldCoordinates *coords);
+void rectangleFillPreview(gameContext *ctx);
 
-void fill(editorContext *ctxE,inputs *input,worldCoordinates *coords);
+void fill(gameContext *ctx);
 
-void editorInputKeys(worldCoordinates *coords,inputs *input);
+void editorInputKeys(gameContext *ctx);
 
-void editorFrame(worldCoordinates *coords, inputs *input, editorContext *ctxE);
+void editorFrame(gameContext *ctx);
 
 #endif

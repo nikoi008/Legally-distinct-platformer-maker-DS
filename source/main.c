@@ -19,6 +19,8 @@
 #include "init.h"
 
 int main(int argc, char **argv){
+
+
     fatInitDefault();
     srand(time(NULL));
     initialise();
@@ -78,24 +80,34 @@ int main(int argc, char **argv){
      NF_SpriteFrame(1,9,4);
 
 
-    editorContext ctxE = {};
-    playerContext ctxP = {};
-    ctxP.grounded = true;
-    ctxE.currentBlock = 1;
-    ctxE.rectFillOn = false;
-    ctxE.firstTouchX = -1;
-    ctxE.firstTouchY = -1;
-    worldCoordinates coords = {};
-    coords.cameraY =( GRID_Y * 16 )/2;
+    editorContext editor = {};
+    playerContext player = {};
     inputs input = {};
+    worldCoordinates coords = {};
+
+    gameContext ctx = {};
+
+    ctx.player = &player;
+    ctx.editor = &editor;
+    ctx.input = &input;
+    ctx.coords = &coords;
+
+     ctx.player->grounded = true;
+     ctx.editor->currentBlock = 1;
+     ctx.editor->rectFillOn = false;
+     ctx.editor->firstTouchX = -1;
+     ctx.editor->firstTouchY = -1;
+
+     ctx.coords->cameraY =( GRID_Y * 16 )/2;
+
 
     while (1)
     {
 
         scanKeys();
-        input.buttonsDown = keysDown();
-        input.buttonsHeld = keysHeld();
-        input.buttonsUp = keysUp();
+         ctx.input->buttonsDown = keysDown();
+         ctx.input->buttonsHeld = keysHeld();
+         ctx.input->buttonsUp = keysUp();
 
 
         switch(state){
@@ -104,29 +116,35 @@ int main(int argc, char **argv){
             break;
             case EDITOR:
                 NF_ShowSprite(1,5,false);
-                 NF_ShowSprite(1,0,true);
-                editorFrame(&coords,&input,&ctxE);
-                scrollLogic(&coords);
-                NF_MoveSprite(1,0,(ctxE.currentBlock * 20) + 30,3);
+                NF_ShowSprite(1,0,true);
+                //editorFrame(&coords,&input,&ctxE);
+                //editorFrame(gameContext *ctx);
+                editorFrame(&ctx);
+                scrollLogic(&ctx);
+                NF_MoveSprite(1,0,(ctx.editor->currentBlock * 20) + 30,3);
                 if(state == PLAY_SCREEN){
-                    ctxP.playerX = ctxE.flagPosX*16;
-                    ctxP.playerY = ctxE.flagPosY*16;
-                    coords.cameraX = ctxP.playerX - 128;
-                    coords.cameraY = ctxP.playerY - 96;
-                    coords.scrollX = 128;
-                    coords.scrollY = 160;
-                    scrollLogic(&coords);
-                    updateTiles(&coords);
+                    ctx.player->playerX = ctx.editor->flagPosX*16;
+                    ctx.player->playerY = ctx.editor->flagPosY*16;
+                    ctx.coords->cameraX = ctx.player->playerX - 128;
+                    ctx.coords->cameraY = ctx.player->playerY - 96;
+                    ctx.coords->scrollX = 128;
+                    ctx.coords->scrollY = 160;
+                    for (int i = 0; i < 10; i++)
+                    {
+                        NF_ShowSprite(1,i + 6,false);
+                    }
+                    scrollLogic(&ctx);
+                    updateTiles(&ctx);
                 }
                 break;
 
 
             case PLAY_SCREEN:
                 NF_ShowSprite(1,5,true);
-                playerAnim(&ctxP);
-                playerPhysics(&ctxP, &input, &coords);
-                playerScroll(&coords, &ctxP);
-                if(ctxP.hflip == false){
+                playerAnim(&ctx);
+                playerPhysics(&ctx);
+                playerScroll(&ctx);
+                if(ctx.player->hflip == false){
                     NF_MoveSprite(1, 5, 128, 96 - 16);
                 }else{
                     NF_MoveSprite(1, 5, 128 - 16, 96 - 16);
@@ -134,7 +152,7 @@ int main(int argc, char **argv){
                 //NF_MoveSprite(1, 0, 128, 96); uncomment to see hitbox
                 NF_ShowSprite(1,0,false); //COMMENT TO SEE hitbx
 
-                if(input.buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
+                if(ctx.input->buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
                     NF_ShowSprite(1,1,true);
                     NF_ShowSprite(1,2,true);
                     NF_ShowSprite(1,3,true);
@@ -142,17 +160,21 @@ int main(int argc, char **argv){
                     NF_CreateTiledBg(1,2,"grid");
                     lcdSwap();
                     state = EDITOR;
-                    coords.cameraX = ctxE.flagPosX - 64;//mysterious offset todo figure out
-                    coords.cameraY = ctxE.flagPosY * 16 - 64;
-                    coords.scrollX = 128;
-                    coords.scrollY = 160;
-                    scrollLogic(&coords);
-                    updateTiles(&coords);
-                    updateOrigin(&coords);
+                    ctx.coords->cameraX = ctx.editor->flagPosX - 64;//mysterious offset todo figure out
+                    ctx.coords->cameraY = ctx.editor->flagPosY * 16 - 64;
+                    ctx.coords->scrollX = 128;
+                    ctx.coords->scrollY = 160;
+                    for (int i = 0; i < 10; i++)
+                    {
+                        NF_ShowSprite(1,i,true);
+                    }
+                    scrollLogic(&ctx);
+                    updateTiles(&ctx);
+                    updateOrigin(&ctx);
                 }
                 break;
         }
-        debugText(&coords, &input,&ctxE,&ctxP);
+        debugText(&ctx);
         NF_SpriteOamSet(0);
         NF_SpriteOamSet(1);
         swiWaitForVBlank();

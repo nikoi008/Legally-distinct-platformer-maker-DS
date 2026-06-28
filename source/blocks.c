@@ -1,11 +1,33 @@
 #include "blocks.h"
 #include "globals.h"
 #include "defines.h"
-
-
+#include <nds.h>
+#include <nf_lib.h>
+#include "types.h"
+#include "camera.h"
+#include "tilemap.h"
 
 void backToEditor(){
-   // state = EDITOR; need to do a bit more than that
+    //*worldCoordinates coords
+    //NF_ShowSprite(1,1,true);
+    //NF_ShowSprite(1,2,true);
+    //N/F_ShowSprite(1,3,true);
+    //NF_ShowSprite(1,4,true);
+    /*
+    NF_CreateTiledBg(1,2,"grid");
+    lcdSwap();
+    coords.cameraX = ctxE.flagPosX - 64;
+    coords.cameraY = ctxE.flagPosY * 16 - 64;
+    coords.scrollX = 128;
+    coords.scrollY = 160;
+    for (int i = 0; i < 10; i++)
+    {
+        NF_ShowSprite(1,i,true);
+    }
+    scrollLogic(&coords);
+    updateTiles(&coords);
+    updateOrigin(&coords);*/
+   state = EDITOR;
 }
 
 
@@ -38,6 +60,13 @@ void initBlocks(){
     blocks[3].topRightTile = 10;
     blocks[3].bottomLeftTile = 11;
     blocks[3].bottomRightTile = 12;
+
+    blocks[4].solid = false;//spike
+    blocks[4].ifTouched = backToEditor;
+    blocks[4].topLeftTile = 13;
+    blocks[4].topRightTile = 14;
+    blocks[4].bottomLeftTile = 15;
+    blocks[4].bottomRightTile = 16;
 }
 
 int coordsToTile(int coord){

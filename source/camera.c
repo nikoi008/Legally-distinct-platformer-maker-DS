@@ -2,34 +2,34 @@
 #include "blocks.h"
 #include "tilemap.h"
 
-void updateOrigin(worldCoordinates *coords){
-    coords->originTileX = coords->cameraTileX - 8;
-    coords->originTileY = coords->cameraTileY - 10;
+void updateOrigin(gameContext *ctx){
+    ctx->coords->originTileX = ctx->coords->cameraTileX - 8;
+    ctx->coords->originTileY = ctx->coords->cameraTileY - 10;
 }
 
-void scrollLogic(worldCoordinates *coords){
-    int jitteroffsetX = coords->cameraX % 16;
-    int jitterOffsetY = coords->cameraY % 16;
-    coords->cameraTileX = coordsToTile(coords->cameraX);
-    coords->cameraTileY = coordsToTile(coords->cameraY);
-    int sX = coords->scrollX;
-    int sY = coords->scrollY;
+void scrollLogic(gameContext *ctx){
+    int jitteroffsetX = ctx->coords->cameraX % 16;
+    int jitterOffsetY = ctx->coords->cameraY % 16;
+    ctx->coords->cameraTileX = coordsToTile(ctx->coords->cameraX);
+    ctx->coords->cameraTileY = coordsToTile(ctx->coords->cameraY);
+    int sX = ctx->coords->scrollX;
+    int sY = ctx->coords->scrollY;
     if(sX < 16 || sX > 240 /*512-16-256*/ || sY < 16 || sY > 304 /*512 - 192 - 16*/){
-        coords->scrollX = 128 + jitteroffsetX;
-        coords->scrollY = 160 + jitterOffsetY;
-        updateOrigin(coords);
-        updateTiles(coords);
+        ctx->coords->scrollX = 128 + jitteroffsetX;
+        ctx->coords->scrollY = 160 + jitterOffsetY;
+        updateOrigin(ctx);
+        updateTiles(ctx);
 
     }
 }
 
-void playerScroll(worldCoordinates *coords, playerContext *ctxP){
-    coords->cameraX = ctxP->playerX - 128;
-    coords->cameraY = ctxP->playerY - 96;
-    coords->cameraTileX = coordsToTile(coords->cameraX);
-    coords->cameraTileY = coordsToTile(coords->cameraY);
-    coords->scrollX = 128 + (coords->cameraX % 16);
-    coords->scrollY = 160 + (coords->cameraY % 16);
-    updateOrigin(coords);
-    updateTiles(coords);
+void playerScroll(gameContext *ctx){
+    ctx->coords->cameraX = ctx->player->playerX - 128;
+    ctx->coords->cameraY = ctx->player->playerY - 96;
+    ctx->coords->cameraTileX = coordsToTile(ctx->coords->cameraX);
+    ctx->coords->cameraTileY = coordsToTile(ctx->coords->cameraY);
+    ctx->coords->scrollX = 128 + (ctx->coords->cameraX % 16);
+    ctx->coords->scrollY = 160 + (ctx->coords->cameraY % 16);
+    updateOrigin(ctx);
+    updateTiles(ctx);
 }

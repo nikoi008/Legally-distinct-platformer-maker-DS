@@ -3,10 +3,10 @@
 
 #include "types.h"
 
-void updateTiles(worldCoordinates *coords);
+void updateTiles(gameContext *ctx);
 
 void saveLevel(char* name);
 
-void loadLevel(char* name, worldCoordinates *coords);
+void loadLevel(char* name,gameContext *ctx);
 
 #endif
