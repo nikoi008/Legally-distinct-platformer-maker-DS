@@ -92,8 +92,13 @@ void editorFrame(worldCoordinates *coords,inputs *input,editorContext *ctxE){
             if(input->touchPos.px /16  <= 1){
                 ctxE->currentBlock = abs((ctxE->currentBlock - 1)% TOTAL_BLOCKS);
             }
-            if(input->touchPos.px /16 >= 14){
+            else if(input->touchPos.px /16 >= 14){
                 ctxE->currentBlock = abs((ctxE->currentBlock + 1)% TOTAL_BLOCKS);
+            }
+            else{
+                //NF_MoveSprite(1,0,(ctxE.currentBlock * 20) + 30,3);
+                int touchBlock = (input->touchPos.px - 30)/ 20;
+                if(touchBlock < TOTAL_BLOCKS){ctxE->currentBlock = touchBlock;}
             }
         }
         updateTiles(coords);

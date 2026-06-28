@@ -18,7 +18,7 @@ void playerAnim(playerContext *ctx){
         NF_SpriteFrame(1,5,0);
     }else{
         ctx->frame++;
-        ctx->frame = ctx->frame * 2
+        ctx->frame = ctx->frame * 2;
         NF_SpriteFrame(1,5,ctx->frame % 10);
     }
 

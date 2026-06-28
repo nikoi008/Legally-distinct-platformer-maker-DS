@@ -4,7 +4,8 @@ BLOCKSDS="${BLOCKSDS:-/opt/blocksds/core/}"
 GRIT=$BLOCKSDS/tools/grit/grit
 
 
-$GRIT animatedSpriteHud.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT animatedHUD.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT tileSprites.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT player.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT highlight.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 

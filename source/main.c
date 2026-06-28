@@ -30,21 +30,23 @@ int main(int argc, char **argv){
     NF_LoadTiledBg("bg/GRID","grid",512,256);
     NF_CreateTiledBg(1,2,"grid");
 
-    NF_LoadSpriteGfx("bg/animatedSpriteHud", 0, 64,32);
-    NF_LoadSpritePal("bg/animatedSpriteHud", 0);//todo make dedicated sprite folder
+    NF_LoadSpriteGfx("bg/animatedHUD", 0, 64,32);
+    NF_LoadSpritePal("bg/animatedHUD", 0);//todo make dedicated sprite folder
 
 
     NF_VramSpriteGfx(1, 0, 0, false);
     NF_VramSpritePal(1, 0, 0);
 
-    NF_CreateSprite(1, 4, 0, 0, 0, 0);
+  
 
-    NF_CreateSprite(1, 1, 0, 0, 64, 0);
+    NF_CreateSprite(1, 1, 0, 0, 0, 0);
     NF_SpriteFrame(1, 1, 0);
-    NF_CreateSprite(1, 2, 0, 0, 128, 0);
+    NF_CreateSprite(1, 2, 0, 0, 64, 0);
     NF_SpriteFrame(1, 2, 1);
-    NF_CreateSprite(1, 3, 0, 0, 192, 0);
+    NF_CreateSprite(1, 3, 0, 0, 128, 0);
     NF_SpriteFrame(1, 3, 2); //all hud elements + frames
+    NF_CreateSprite(1, 4, 0, 0, 192, 0);
+    NF_SpriteFrame(1, 4, 3);
 
     NF_LoadSpriteGfx("bg/highlight",1,16,16);
     NF_LoadSpritePal("bg/highlight",1);
@@ -58,6 +60,23 @@ int main(int argc, char **argv){
     NF_VramSpritePal(1,2,2);
     NF_CreateSprite(1,5,2,2,100,50);
     initBlocks();
+    
+
+    NF_LoadSpriteGfx("bg/tileSprites",3,16,16);
+    NF_LoadSpritePal("bg/tileSprites",3);
+    NF_VramSpriteGfx(1,3,3,false);
+    NF_VramSpritePal(1,3,3);
+
+    for(int i = 0; i < 10; i++){
+        NF_CreateSprite(1,i + 6,3,3,30 + (i * 20),3);
+        NF_SpriteFrame(1,i + 6,0);
+    }
+
+     NF_SpriteFrame(1,6,1);
+     NF_SpriteFrame(1,7,2);
+     NF_SpriteFrame(1,8,3);
+     NF_SpriteFrame(1,9,4);
+
 
     editorContext ctxE = {};
     playerContext ctxP = {};
@@ -88,7 +107,7 @@ int main(int argc, char **argv){
                  NF_ShowSprite(1,0,true);
                 editorFrame(&coords,&input,&ctxE);
                 scrollLogic(&coords);
-                NF_MoveSprite(1,0,(ctxE.currentBlock * 18) + 28,3);
+                NF_MoveSprite(1,0,(ctxE.currentBlock * 20) + 30,3);
                 if(state == PLAY_SCREEN){
                     ctxP.playerX = ctxE.flagPosX*16;
                     ctxP.playerY = ctxE.flagPosY*16;
