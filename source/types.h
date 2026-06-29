@@ -17,14 +17,7 @@ typedef enum{
 }playerState;
 
 
-typedef struct{
-    bool solid;
-    void (*ifTouched)(void);
-    int topLeftTile;
-    int topRightTile;
-    int bottomLeftTile;
-    int bottomRightTile;
-}block;
+
 
 typedef struct{
     u16 buttonsDown;
@@ -82,4 +75,13 @@ typedef struct
     editorContext *editor;
     inputs *input;
 }gameContext;
+
+typedef struct{
+    bool solid;
+    void (*ifTouched)(gameContext*);
+    int topLeftTile;
+    int topRightTile;
+    int bottomLeftTile;
+    int bottomRightTile;
+}block;
 #endif

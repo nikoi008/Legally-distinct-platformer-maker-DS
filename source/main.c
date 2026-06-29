@@ -19,7 +19,17 @@
 #include "init.h"
 
 int main(int argc, char **argv){
+    editorContext editor = {};
+    playerContext player = {};
+    inputs input = {};
+    worldCoordinates coords = {};
 
+    gameContext ctx = {};
+
+    ctx.player = &player;
+    ctx.editor = &editor;
+    ctx.input = &input;
+    ctx.coords = &coords;
 
     fatInitDefault();
     srand(time(NULL));
@@ -61,7 +71,7 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,2,2,false);
     NF_VramSpritePal(1,2,2);
     NF_CreateSprite(1,5,2,2,100,50);
-    initBlocks();
+    initBlocks(&ctx);
     
 
     NF_LoadSpriteGfx("bg/tileSprites",3,16,16);
@@ -78,19 +88,10 @@ int main(int argc, char **argv){
      NF_SpriteFrame(1,7,2);
      NF_SpriteFrame(1,8,3);
      NF_SpriteFrame(1,9,4);
+     NF_SpriteFrame(1,10,5);
 
 
-    editorContext editor = {};
-    playerContext player = {};
-    inputs input = {};
-    worldCoordinates coords = {};
 
-    gameContext ctx = {};
-
-    ctx.player = &player;
-    ctx.editor = &editor;
-    ctx.input = &input;
-    ctx.coords = &coords;
 
      ctx.player->grounded = true;
      ctx.editor->currentBlock = 1;

@@ -18,7 +18,7 @@ void updateTiles(gameContext *ctx)
             if(x >= 0 && x < GRID_X && y >= 0 && y < GRID_Y)
                 blockID = TILE_MAP[y][x];
             else
-                blockID = 4;
+                blockID = 0;
             NF_SetTileOfMap(1, TILE_LAYER, coordX*2,   coordY*2,   blocks[blockID].topLeftTile);
             NF_SetTileOfMap(1, TILE_LAYER, coordX*2+1, coordY*2,   blocks[blockID].topRightTile);
             NF_SetTileOfMap(1, TILE_LAYER, coordX*2,   coordY*2+1, blocks[blockID].bottomLeftTile);

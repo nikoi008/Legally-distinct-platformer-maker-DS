@@ -2,9 +2,9 @@
 #define BLOCKS_H
 
 #include "types.h"
-void backToEditor();
+void backToEditor(gameContext *ctx);
 
-void initBlocks(void);
+void initBlocks(gameContext *ctx);
 
 int coordsToTile(int coord);
 
