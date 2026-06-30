@@ -30,10 +30,9 @@ void xCollision(gameContext *ctx,bool leftDirection){
 
     if(tileSolid(predictedPlace / 16, ctx->player->playerY / 16)){
         ctx->player->velocityX = 0;
-
-        if(blocks[TILE_MAP[ctx->player->playerY / 16 ][predictedPlace / 16]].ifTouched != NULL){
-            blocks[TILE_MAP[ctx->player->playerY / 16][predictedPlace / 16]].ifTouched(ctx);
-        }
+    }
+    if(blocks[TILE_MAP[ctx->player->playerY / 16 ][predictedPlace / 16]].ifTouched != NULL){
+        blocks[TILE_MAP[ctx->player->playerY / 16][predictedPlace / 16]].ifTouched(ctx);
     }
 }
 
@@ -47,10 +46,9 @@ void yCollision(gameContext *ctx){ //TODO implement aabb because this will bite 
             ctx->player->playerY = (predictedBottomY / 16) * 16 - 16;
             ctx->player->velocityY = 0;
             ctx->player->grounded = true;
-
-            if(blocks[TILE_MAP[predictedBottomY / 16 ][ctx->player->playerX / 16]].ifTouched != NULL){
-                blocks[TILE_MAP[predictedBottomY / 16 ][ctx->player->playerX / 16]].ifTouched(ctx);
-            }
+        }
+        if(blocks[TILE_MAP[predictedBottomY / 16 ][ctx->player->playerX / 16]].ifTouched != NULL){
+            blocks[TILE_MAP[predictedBottomY / 16 ][ctx->player->playerX / 16]].ifTouched(ctx);
         }
 
     } else if(ctx->player->velocityY < 0){

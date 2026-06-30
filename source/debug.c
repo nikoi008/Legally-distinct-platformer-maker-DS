@@ -42,4 +42,8 @@ void debugText(gameContext *ctx)
   snprintf(dcurrentBlock,sizeof(dcurrentBlock),"current block %d",ctx->editor->currentBlock);
   NF_WriteText(0,0,1,9,dcurrentBlock);
 
+    char leftmosts[32];
+    snprintf(leftmosts,sizeof(leftmosts),"lm %d %d",ctx->editor->leftMostX,ctx->editor->leftMostY);
+    NF_WriteText(0,0,1,10,leftmosts);
+
 }

@@ -30,7 +30,7 @@ int main(int argc, char **argv){
     ctx.editor = &editor;
     ctx.input = &input;
     ctx.coords = &coords;
-
+    consoleDebugInit(DebugDevice_NOCASH);
     fatInitDefault();
     srand(time(NULL));
     initialise();
@@ -98,13 +98,17 @@ int main(int argc, char **argv){
      ctx.editor->rectFillOn = false;
      ctx.editor->firstTouchX = -1;
      ctx.editor->firstTouchY = -1;
+    ctx.editor->leftMostX = 1024;
+    ctx.editor->leftMostY = 1024;
 
+     ctx.editor->flagPosX = -1;
+    ctx.editor->flagPosY = -1;
      ctx.coords->cameraY =( GRID_Y * 16 )/2;
 
 
     while (1)
     {
-
+        fprintf(stderr, "Frame: %%frame%%\n");
         scanKeys();
          ctx.input->buttonsDown = keysDown();
          ctx.input->buttonsHeld = keysHeld();
@@ -124,8 +128,16 @@ int main(int argc, char **argv){
                 scrollLogic(&ctx);
                 NF_MoveSprite(1,0,(ctx.editor->currentBlock * 20) + 30,3);
                 if(state == PLAY_SCREEN){
-                    ctx.player->playerX = ctx.editor->flagPosX*16;
-                    ctx.player->playerY = ctx.editor->flagPosY*16;
+                    if (ctx.editor->flagPosX >= 0 && ctx.editor->flagPosY >= 0)
+                    {
+                        ctx.player->playerX = ctx.editor->flagPosX*16;
+                        ctx.player->playerY = ctx.editor->flagPosY*16;
+                    }else
+                    {
+                        ctx.player->playerX = ctx.editor->leftMostX * 16;
+                        ctx.player->playerY = ctx.editor->leftMostY * 16;
+
+                    }
                     ctx.coords->cameraX = ctx.player->playerX - 128;
                     ctx.coords->cameraY = ctx.player->playerY - 96;
                     ctx.coords->scrollX = 128;
@@ -167,7 +179,7 @@ int main(int argc, char **argv){
                     ctx.coords->scrollY = 160;
                     for (int i = 0; i < 10; i++)
                     {
-                        NF_ShowSprite(1,i,true);
+                        NF_ShowSprite(1,i + 6,true);
                     }
                     scrollLogic(&ctx);
                     updateTiles(&ctx);

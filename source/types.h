@@ -41,6 +41,8 @@ typedef struct{
 }worldCoordinates;
 
 typedef struct{
+    int leftMostX;
+    int leftMostY;
     int currentBlock;
     int flagPosX;
     int flagPosY;

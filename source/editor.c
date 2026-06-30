@@ -45,7 +45,20 @@ void fill(gameContext *ctx){
     ctx->editor->firstTouchX = -1;
     ctx->editor->firstTouchY = -1;
 }
+void updateLeftmostTile(gameContext *ctx)
+{
+    if (ctx->editor->firstTouchX >= 0 &&ctx->editor->leftMostX > ctx->editor->firstTouchX)
+    {
+        ctx->editor->leftMostX = ctx->editor->firstTouchX / 16;
+        ctx->editor->leftMostY = ctx->editor->firstTouchY / 16;
+    }
+    if ( ctx->input->touchTileX >= 0 && ctx->editor->leftMostX > ctx->input->touchTileX )
+    {
+        ctx->editor->leftMostX = ctx->input->touchTileX;
+        ctx->editor->leftMostY = ctx->input->touchTileY;
+    }
 
+}
 void editorInputKeys(gameContext *ctx){
     if (ctx->input->buttonsHeld & KEY_LEFT && ctx->coords->cameraX >= 0){
         ctx->coords->scrollX -= SPEED;
@@ -134,4 +147,9 @@ void editorFrame(gameContext *ctx){
     if(ctx->input->buttonsDown & KEY_Y){
         loadLevel("fat:/YouMakeLevels/level.txt",ctx);
     }
+
+    if (ctx->input->buttonsHeld & KEY_TOUCH && ctx->input->touchPos.py > HUD_Y_START) {
+        updateLeftmostTile(ctx);
+    }
+
 }

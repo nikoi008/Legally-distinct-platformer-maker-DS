@@ -31,7 +31,8 @@ void backToEditor(gameContext *ctx){
 
 
 
-void initBlocks(gameContext *ctx){
+void initBlocks(gameContext *ctx)
+{
     blocks[0].solid = false; //air
     blocks[0].ifTouched = NULL;
     blocks[0].topRightTile = 0;
@@ -67,14 +68,16 @@ void initBlocks(gameContext *ctx){
     blocks[4].bottomLeftTile = 15;
     blocks[4].bottomRightTile = 16;
 }
+bool tileSolid(int tileX,int tileY){
+    return blocks[TILE_MAP[tileY][tileX]].solid;
+
+}
 
 int coordsToTile(int coord){
     return coord / 16;
 }
 
-bool tileSolid(int tileX,int tileY){
-    return blocks[TILE_MAP[tileY][tileX]].solid;
-}
+
 
 void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
     if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
@@ -82,6 +85,16 @@ void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
         TILE_MAP[ctx->flagPosY][ctx->flagPosX] = 0;
         ctx->flagPosX = tileX;
         ctx->flagPosY = tileY;
+    }
+    if (ctx->flagPosX >= 0 && ctx->flagPosY >= 0 && ctx->currentBlock == 0 && TILE_MAP[tileY][tileX] == 2)
+    {
+        ctx->flagPosX = -1;
+        ctx->flagPosY = -1;
+    }
+    if (tileX <= ctx->leftMostX && tileX <= ctx->leftMostY)//debug test change to < later
+    {
+        ctx->leftMostX = tileX;
+        ctx->leftMostY = tileY - 16;
     }
     TILE_MAP[tileY][tileX] = currentBlock;
 }
