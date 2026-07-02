@@ -91,11 +91,11 @@ void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
         ctx->flagPosX = -1;
         ctx->flagPosY = -1;
     }
-    if (tileX <= ctx->leftMostX && tileX <= ctx->leftMostY)//debug test change to < later
-    {
-        ctx->leftMostX = tileX;
-        ctx->leftMostY = tileY - 16;
-    }
+    //if (tileX <= ctx->leftMostX && tileX <= ctx->leftMostY)//debug test change to < later
+    //{
+    //    ctx->leftMostX = tileX;
+    //    ctx->leftMostY = tileY - 16;
+    //}
     TILE_MAP[tileY][tileX] = currentBlock;
 }
 

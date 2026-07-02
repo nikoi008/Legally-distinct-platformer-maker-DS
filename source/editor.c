@@ -148,8 +148,4 @@ void editorFrame(gameContext *ctx){
         loadLevel("fat:/YouMakeLevels/level.txt",ctx);
     }
 
-    if (ctx->input->buttonsHeld & KEY_TOUCH && ctx->input->touchPos.py > HUD_Y_START) {
-        updateLeftmostTile(ctx);
-    }
-
 }

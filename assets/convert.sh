@@ -8,6 +8,7 @@ $GRIT animatedHUD.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT tileSprites.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT player.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT highlight.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT key.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 
 $GRIT HUD.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
 $GRIT GRID.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
