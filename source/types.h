@@ -26,7 +26,7 @@ typedef struct{
     touchPosition touchPos;
     int touchTileX;
     int touchTileY;
-
+    bool keyboardOn;
 }inputs;
 
 typedef struct{

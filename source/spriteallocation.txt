@@ -2,4 +2,4 @@ Sprite 0 - highlight block for editors HUD
 Sprites 1-4 - the HUD
 Sprite 5 - player Sprite (keepframes false)
 Sprites 6-15 - Preview tiles for editors HUD
- 
+ sprites 16-17 keyboard sprite
