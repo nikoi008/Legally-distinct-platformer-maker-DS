@@ -121,12 +121,27 @@ int main(int argc, char **argv){
     NF_SpriteRotScale(1,1,0,256 + 128,256 + 128);
 
 
+    NF_LoadSpriteGfx("bg/letters",5,8,8);
+    NF_LoadSpritePal("bg/letters",5);
+    NF_VramSpriteGfx(1,5,5,false);
+    NF_VramSpritePal(1,5,5);
+
+    for (int i = 0; i < 12; i++)
+    {
+        NF_CreateSprite(1,18 +i,5,5,18 * i,45);
+        NF_SpriteFrame(1,i + 18,i);
+
+        NF_EnableSpriteRotScale(1, 18 + i, i + 1, true);
+        NF_SpriteRotScale(1,i + 1,0,256 + 128,256 + 128);
+
+    }
+
 
     state = MAIN_MENU;
     while (1)
     {
 
-
+        NF_ClearTextLayer(0, 0);
         scanKeys();
          ctx.input->buttonsDown = keysDown();
          ctx.input->buttonsHeld = keysHeld();
@@ -135,7 +150,7 @@ int main(int argc, char **argv){
 
         switch(state){
             case MAIN_MENU:
-            state = EDITOR;
+                state = EDITOR;
             break;
             case EDITOR:
                 NF_ShowSprite(1,5,false);

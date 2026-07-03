@@ -20,10 +20,10 @@ void showKeyboard(bool show)
 }
 char keyboardPresses(gameContext *ctx)
 {
-    char layer1[10] = {'0','1','2','3','4','5','6','7','8','9'}; // rect bounds from x40 y80 to x204 y 104
-    char layer2[10] = {'Q','W','E','R','T','Y','U','I','O','P'}; // x40 to y104 x204 y126
-    char layer3[9] = {'A','S','D','F','G','H','J','K','L'}; //x48 y128 to x198 y148
-    char layer4[7] = {'Z','X','C','V','B','N','M'}; //x64 y 152 to x180 y170
+    static const char layer1[10] = {'0','1','2','3','4','5','6','7','8','9'}; // rect bounds from x40 y80 to x204 y 104
+    static const char layer2[10] = {'Q','W','E','R','T','Y','U','I','O','P'}; // x40 to y104 x204 y126
+    static const char layer3[9] = {'A','S','D','F','G','H','J','K','L'}; //x48 y128 to x198 y148
+    static const char layer4[7] = {'Z','X','C','V','B','N','M'}; //x64 y 152 to x180 y170
 
     char keyPressed[3];
 
@@ -107,6 +107,33 @@ char keyboardPresses(gameContext *ctx)
     return '@';
 }
 
+int getLetterFrame(char letter[1])
+{
+    if (letter[0] > 'A' && letter[0] < 'Z')
+    {
+        return letter[0] - 65;
+    }
+    if (letter[0] == ' ')
+    {
+        return 36;
+    }
+    else if (letter[0] > '0' && letter[0] < '9')
+    {
+        return (letter[0] - 48) + 26;
+    }
+    return 36;
+}
+
+void displayTyped(char *string,int maxChars)
+{
+    for (int i = 0; i < maxChars; i++)
+    {
+        char letter[1];
+        letter[0] = string[i];
+        NF_SpriteFrame(1,18 + i, getLetterFrame(&letter[0]));
+    }
+
+}
 char keyboardLoop(int maxChars, char *string,gameContext *ctx)
 {
 
@@ -136,11 +163,11 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx)
         }
         else if (letter[0] == '+')
         {
-            return 's';
+            return '+';
         }
         else
         {
-            if (letterPos + 1 < maxChars)
+            if (letterPos < maxChars)
             {
                 string[letterPos] = letter[0];
                 letterPos++;
@@ -151,8 +178,8 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx)
     char buffer[16];
     snprintf(buffer,sizeof(buffer),"%d",letterPos);
     nocashMessage(buffer);
-
-    return 'c';
+    displayTyped(string,maxChars);
+    return '?';
 
 
 

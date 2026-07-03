@@ -6,7 +6,6 @@
 
 void debugText(gameContext *ctx)
 {
-    NF_ClearTextLayer(0, 0);
     char buffer[64];
 
     snprintf(buffer,sizeof(buffer),"scrollX px %d scrollY px %d",ctx->coords->scrollX,ctx->coords->scrollY);

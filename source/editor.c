@@ -7,6 +7,7 @@
 #include "blocks.h"
 #include "tilemap.h"
 #include "keyboard.h"
+#include <string.h>
 
 void rectangleFillPreview(gameContext *ctx){ // causes huge lag when rectangles are large.. todo optimise??
     touchRead(&ctx->input->touchPos);                                                        // might just be emu lag??? desmume struggles but melonds is fine????? todo test on real ds
@@ -158,14 +159,18 @@ void editorFrame(gameContext *ctx)
         static bool returned = false;
         if (returned == false)
         {
-            if (keyboardLoop(12, word,ctx) == 's')
+            if (keyboardLoop(12, word,ctx) == '+')
             {
+
                 returned = true;
                 showKeyboard(false);
                 ctx->input->keyboardOn = false;
+                char dir[64] = "fat:/YouMakeLevels/";
+                strcat(dir,word);
+                saveLevel(dir);
             }
         }
-
+        NF_WriteText(0,0,0,14,word);
     }
 
 }
