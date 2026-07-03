@@ -81,7 +81,7 @@ int coordsToTile(int coord){
 
 void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
     if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
-    if( (ctx->flagPosX >= 0 || ctx->flagPosY >= 0) && ctx->currentBlock == 2){
+    if(ctx->currentBlock == 2){
         TILE_MAP[ctx->flagPosY][ctx->flagPosX] = 0;
         ctx->flagPosX = tileX;
         ctx->flagPosY = tileY;

@@ -6,7 +6,7 @@
 #include "defines.h"
 #include "blocks.h"
 #include "tilemap.h"
-
+#include "keyboard.h"
 
 void rectangleFillPreview(gameContext *ctx){ // causes huge lag when rectangles are large.. todo optimise??
     touchRead(&ctx->input->touchPos);                                                        // might just be emu lag??? desmume struggles but melonds is fine????? todo test on real ds
@@ -77,75 +77,95 @@ void editorInputKeys(gameContext *ctx){
         ctx->coords->cameraY += SPEED;
     }
 }
-void editorFrame(gameContext *ctx){
+void editorFrame(gameContext *ctx)
+{
+    if (!ctx->input->keyboardOn){
+        editorInputKeys(ctx);
 
-    editorInputKeys(ctx);
+        if(ctx->input->buttonsHeld & KEY_TOUCH && !ctx->editor->rectFillOn){
+            touchRead(&ctx->input->touchPos);
+            ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+            ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
 
-    if(ctx->input->buttonsHeld & KEY_TOUCH && !ctx->editor->rectFillOn){
-        touchRead(&ctx->input->touchPos);
-        ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
-        ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
-
-        if(ctx->input->touchPos.py >= HUD_Y_START){//hud width
-            addTile(ctx->input->touchTileX,ctx->input->touchTileY,ctx->editor->currentBlock,ctx->editor);
+            if(ctx->input->touchPos.py >= HUD_Y_START){//hud width
+                addTile(ctx->input->touchTileX,ctx->input->touchTileY,ctx->editor->currentBlock,ctx->editor);
+            }
+            updateTiles(ctx);
         }
-        updateTiles(ctx);
-    }
-    if(ctx->input->buttonsDown & KEY_B && ctx->editor->currentBlock != 2){
-        ctx->editor->rectFillOn = !ctx->editor->rectFillOn;
-    }
+        if(ctx->input->buttonsDown & KEY_B && ctx->editor->currentBlock != 2){
+            ctx->editor->rectFillOn = !ctx->editor->rectFillOn;
+        }
 
-    if (ctx->input->buttonsDown & KEY_TOUCH && !ctx->editor->rectFillOn){
-        touchRead(&ctx->input->touchPos);
+        if (ctx->input->buttonsDown & KEY_TOUCH && !ctx->editor->rectFillOn){
+            touchRead(&ctx->input->touchPos);
 
-        ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
-        ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
+            ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+            ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
 
-        if(ctx->input->touchPos.py <= HUD_Y_START){//hud width
-            if(ctx->input->touchPos.px /16  <= 1){
-                ctx->editor->currentBlock = abs((ctx->editor->currentBlock - 1)% TOTAL_BLOCKS);
+            if(ctx->input->touchPos.py <= HUD_Y_START){//hud width
+                if(ctx->input->touchPos.px /16  <= 1){
+                    ctx->editor->currentBlock = abs((ctx->editor->currentBlock - 1)% TOTAL_BLOCKS);
+                }
+                else if(ctx->input->touchPos.px /16 >= 14){
+                    ctx->editor->currentBlock = abs((ctx->editor->currentBlock + 1)% TOTAL_BLOCKS);
+                }
+                else{
+                    //NF_MoveSprite(1,0,(ctxE.currentBlock * 20) + 30,3);
+                    int touchBlock = (ctx->input->touchPos.px - 30)/ 20;
+                    if(touchBlock < TOTAL_BLOCKS){ctx->editor->currentBlock = touchBlock;}
+                }
             }
-            else if(ctx->input->touchPos.px /16 >= 14){
-                ctx->editor->currentBlock = abs((ctx->editor->currentBlock + 1)% TOTAL_BLOCKS);
-            }
-            else{
-                //NF_MoveSprite(1,0,(ctxE.currentBlock * 20) + 30,3);
-                int touchBlock = (ctx->input->touchPos.px - 30)/ 20;
-                if(touchBlock < TOTAL_BLOCKS){ctx->editor->currentBlock = touchBlock;}
+            updateTiles(ctx);
+        }
+        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX < 0 || ctx->editor->firstTouchY < 0) && ctx->input->buttonsHeld & KEY_TOUCH){
+            touchRead(&ctx->input->touchPos);
+            ctx->editor->firstTouchX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
+            ctx->editor->firstTouchY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
+        }
+        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsHeld & KEY_TOUCH){
+            rectangleFillPreview(ctx);
+        }
+        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsUp & KEY_TOUCH){
+            fill(ctx);
+        }
+
+        if(ctx->input->buttonsDown & KEY_A){
+            state = PLAY_SCREEN;
+
+            //swap with seperate HUD <-- todo
+            NF_ShowSprite(1,1,false);
+            NF_ShowSprite(1,2,false);
+            NF_ShowSprite(1,3,false);
+            NF_ShowSprite(1,4,false);
+            NF_DeleteTiledBg(1,2);
+            lcdSwap();
+        }
+        if (ctx->input->buttonsDown & KEY_SELECT)
+        {
+            ctx->input->keyboardOn = true;
+            showKeyboard(true);
+        }
+        if(ctx->input->buttonsDown & KEY_X){
+            saveLevel("fat:/YouMakeLevels/level.txt");
+        }
+
+        if(ctx->input->buttonsDown & KEY_Y){
+            loadLevel("fat:/YouMakeLevels/level.txt",ctx);
+        }
+    }else
+    {
+        static char word[12] = "";
+        static bool returned = false;
+        if (returned == false)
+        {
+            if (keyboardLoop(12, word,ctx) == 's')
+            {
+                returned = true;
+                showKeyboard(false);
+                ctx->input->keyboardOn = false;
             }
         }
-        updateTiles(ctx);
-    }
-    else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX < 0 || ctx->editor->firstTouchY < 0) && ctx->input->buttonsHeld & KEY_TOUCH){
-        touchRead(&ctx->input->touchPos);
-        ctx->editor->firstTouchX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
-        ctx->editor->firstTouchY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
-    }
-    else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsHeld & KEY_TOUCH){
-        rectangleFillPreview(ctx);
-    }
-    else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsUp & KEY_TOUCH){
-        fill(ctx);
-    }
 
-    if(ctx->input->buttonsDown & KEY_A){
-        state = PLAY_SCREEN;
-
-        //swap with seperate HUD <-- todo
-        NF_ShowSprite(1,1,false);
-        NF_ShowSprite(1,2,false);
-        NF_ShowSprite(1,3,false);
-        NF_ShowSprite(1,4,false);
-        NF_DeleteTiledBg(1,2);
-        lcdSwap();
-    }
-
-    if(ctx->input->buttonsDown & KEY_X){
-        saveLevel("fat:/YouMakeLevels/level.txt");
-    }
-
-    if(ctx->input->buttonsDown & KEY_Y){
-        loadLevel("fat:/YouMakeLevels/level.txt",ctx);
     }
 
 }
