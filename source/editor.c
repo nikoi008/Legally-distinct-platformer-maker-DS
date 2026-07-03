@@ -146,9 +146,6 @@ void editorFrame(gameContext *ctx)
             ctx->input->keyboardOn = true;
             showKeyboard(true);
         }
-        if(ctx->input->buttonsDown & KEY_X){
-            saveLevel("fat:/YouMakeLevels/level.txt");
-        }
 
         if(ctx->input->buttonsDown & KEY_Y){
             loadLevel("fat:/YouMakeLevels/level.txt",ctx);

@@ -7,13 +7,25 @@ void showKeyboard(bool show)
 {
     if (show)
     {
+        //
+        for (int i = 0; i < 12; i++)
+        {
+            NF_MoveSprite(1,i + 18,18 * i,45);
+
+        }
         NF_MoveSprite(1,17,128 + 37,80);
         NF_MoveSprite(1,16,37,80);
+
     }
     else
     {
         NF_MoveSprite(1,17,300,300);
         NF_MoveSprite(1,16,300,300);
+        for (int i = 0; i < 12; i++)
+        {
+            NF_MoveSprite(1,i + 18,300,300);
+
+        }
     }
 
 
@@ -109,7 +121,7 @@ char keyboardPresses(gameContext *ctx)
 
 int getLetterFrame(char letter[1])
 {
-    if (letter[0] > 'A' && letter[0] < 'Z')
+    if (letter[0] >= 'A' && letter[0] <= 'Z')
     {
         return letter[0] - 65;
     }
@@ -117,7 +129,7 @@ int getLetterFrame(char letter[1])
     {
         return 36;
     }
-    else if (letter[0] > '0' && letter[0] < '9')
+    else if (letter[0] >= '0' && letter[0] <= '9')
     {
         return (letter[0] - 48) + 26;
     }
