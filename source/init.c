@@ -26,7 +26,7 @@ void initialise(){
     NF_InitSpriteSys(1);
 
     NF_InitTextSys(0);
-    NF_LoadTextFont("fnt/default", "normal", 256, 256, 0);
+    NF_LoadTextFont("bg/font", "normal", 256, 256, 0);
     NF_CreateTextLayer(0, 0, 0, "normal");
     NF_DefineTextColor(0,0,BLACK,0,0,0);
     BG_PALETTE_SUB[0] = RGB15(9, 19, 28);

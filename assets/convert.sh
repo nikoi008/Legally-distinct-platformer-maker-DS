@@ -14,6 +14,7 @@ $GRIT letters.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 
 $GRIT HUD.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
 $GRIT GRID.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
+$GRIT font.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -m!
 $GRIT tiles.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 
 
