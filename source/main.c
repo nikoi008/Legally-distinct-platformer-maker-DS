@@ -85,14 +85,31 @@ void showDirs(gameContext *ctx)
         {
 
             //fprintf(out, "%s\n", de->d_name);
+            static int frame = 0;
+            frame++;
             char buffer[64];
             if (counter >= position)
             {
                 snprintf(buffer,sizeof(buffer),"%s",de->d_name);
                 if (!(strchr(buffer,'.') != NULL))
                 {
-                    NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
+                    if (frame <= 60 && (textRowCounter % 32) + 1 == 11)
+                    {
+                        NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
+                    }
+                    else if (frame >= 120 && (textRowCounter % 32) + 1 == 11)
+                    {
+                        frame = 0;
+                    }
+                    else
+                    {
+                        NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
+                    }
+
                     textRowCounter+= 2;
+
+
+
                 }
             }
             counter++ ;
@@ -100,6 +117,8 @@ void showDirs(gameContext *ctx)
         fclose(out);
         closedir(dr);
 }
+
+
 int main(int argc, char **argv){
     editorContext editor = {};
     playerContext player = {};
