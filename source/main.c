@@ -88,6 +88,7 @@ void showDirs(gameContext *ctx)
             static int frame = 0;
             frame++;
             char buffer[64];
+            char highlightedLevel[64];
             if (counter >= position)
             {
                 snprintf(buffer,sizeof(buffer),"%s",de->d_name);
@@ -95,10 +96,15 @@ void showDirs(gameContext *ctx)
                 {
                     if (frame <= 60 && (textRowCounter % 32) + 1 == 11)
                     {
+                        memset(highlightedLevel,0,sizeof(highlightedLevel));
+                        snprintf(highlightedLevel,sizeof(highlightedLevel),"%s",de->d_name);
                         NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
+
                     }
                     else if (frame >= 120 && (textRowCounter % 32) + 1 == 11)
                     {
+                        memset(highlightedLevel,0,sizeof(highlightedLevel));
+                        snprintf(highlightedLevel,sizeof(highlightedLevel),"%s",de->d_name);
                         frame = 0;
                     }
                     else
@@ -107,6 +113,14 @@ void showDirs(gameContext *ctx)
                     }
 
                     textRowCounter+= 2;
+                    NF_WriteText(0,0,1,0,highlightedLevel);
+                    if (ctx->input->buttonsUp & KEY_A)
+                    {
+                        state = EDITOR;
+                        char dir[64] = "fat:/YouMakeLevels/";
+                        strcat(dir,highlightedLevel);
+                        loadLevel(dir); //todo actually deal with loadlevel loading centered (if it doesnt already)
+                    }
 
 
 
