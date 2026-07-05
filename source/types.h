@@ -6,7 +6,9 @@
 typedef enum{
     MAIN_MENU,
     EDITOR,
-    PLAY_SCREEN
+    PLAY_SCREEN,
+    LEVEL_SAVE,
+    LEVEL_LOAD
 } gameStates;
 
 typedef enum{

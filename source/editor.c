@@ -145,29 +145,11 @@ void editorFrame(gameContext *ctx)
         {
             ctx->input->keyboardOn = true;
             showKeyboard(true);
+            state = LEVEL_SAVE;
         }
 
         if(ctx->input->buttonsDown & KEY_Y){
             loadLevel("fat:/YouMakeLevels/level.txt",ctx);
         }
-    }else
-    {
-        static char word[12] = "";
-        static bool returned = false;
-        if (returned == false)
-        {
-            if (keyboardLoop(12, word,ctx) == '+')
-            {
-
-                returned = true;
-                showKeyboard(false);
-                ctx->input->keyboardOn = false;
-                char dir[64] = "fat:/YouMakeLevels/";
-                strcat(dir,word);
-                saveLevel(dir);
-            }
-        }
-        NF_WriteText(0,0,0,14,word);
     }
-
 }

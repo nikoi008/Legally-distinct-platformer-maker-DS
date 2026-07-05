@@ -37,7 +37,7 @@ void testWriteSizes()
     fclose(f);
 }
 
-void readDirs(gameContext *ctx)
+void showDirs(gameContext *ctx)
 {
         struct dirent *de;
         DIR *dr = opendir("fat:/YouMakeLevels/");
@@ -88,9 +88,10 @@ void readDirs(gameContext *ctx)
             char buffer[64];
             if (counter >= position)
             {
+
                 snprintf(buffer,sizeof(buffer),"%s",de->d_name);
-                NF_WriteText(0,0,1,textRowCounter,buffer);
-                textRowCounter++;
+                NF_WriteText(0,0,1,textRowCounter % 32,buffer);
+                textRowCounter+= 2;
             }
             counter++ ;
         }
@@ -216,7 +217,7 @@ int main(int argc, char **argv){
     showKeyboard(false);
 
 
-    state = MAIN_MENU;
+    state = LEVEL_LOAD;
 
 
     //testWriteSizes();
@@ -225,7 +226,6 @@ int main(int argc, char **argv){
 
         NF_ClearTextLayer(0, 0);
         scanKeys();
-        readDirs(&ctx);
          ctx.input->buttonsDown = keysDown();
          ctx.input->buttonsHeld = keysHeld();
          ctx.input->buttonsUp = keysUp();
@@ -294,6 +294,31 @@ int main(int argc, char **argv){
                     updateOrigin(&ctx);
                 }
                 break;
+
+
+            case LEVEL_SAVE:
+                static char word[12] = "";
+                static bool returned = false;
+                if (returned == false)
+                {
+                    if (keyboardLoop(12, word,&ctx) == '+')
+                    {
+
+                        returned = true;
+                        showKeyboard(false);
+                        ctx.input->keyboardOn = false;
+                        char dir[64] = "fat:/YouMakeLevels/";
+                        strcat(dir,word);
+                        saveLevel(dir);
+                    }
+                    //todo add a cancel button
+                }
+                NF_WriteText(0,0,0,14,word);
+
+            case LEVEL_LOAD:
+                showDirs(&ctx);
+
+
         }
         //debugText(&ctx);
         NF_SpriteOamSet(0);
