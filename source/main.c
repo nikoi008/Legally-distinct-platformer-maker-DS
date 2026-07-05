@@ -6,6 +6,7 @@
 #include <fat.h>
 #include <sys/stat.h>
 #include <nf_lib.h>
+#include <dirent.h>
 #include "blocks.h"
 #include "tilemap.h"
 #include "editor.h"
@@ -18,7 +19,84 @@
 #include "debug.h"
 #include "init.h"
 #include "keyboard.h"
+void testWriteSizes()
+{
+    FILE *f;
+    size_t n;
 
+    f = fopen("fat:/YouMakeLevels/test1k.bin", "wb");
+    n = fwrite(TILE_MAP, 1, 1024, f);
+    fclose(f);
+
+    f = fopen("fat:/YouMakeLevels/test64k.bin", "wb");
+    n = fwrite(TILE_MAP, 1, 65536, f);
+    fclose(f);
+
+    f = fopen("fat:/YouMakeLevels/test512k.bin", "wb");
+    n = fwrite(TILE_MAP, 1, 524288, f);
+    fclose(f);
+}
+
+void readDirs(gameContext *ctx)
+{
+        struct dirent *de;
+        DIR *dr = opendir("fat:/YouMakeLevels/");
+        FILE *out = fopen("fat:/YouMakeLevels/allLevels.txt", "w");
+
+        if (dr == NULL)
+        {
+            //volatile int *p = (volatile int *)0;
+            //*p = 1; uncomment incase it misbehaves
+        }
+
+        if (out == NULL)
+        {
+            //volatile int *p = (volatile int *)0;
+            //*p = 1;
+        }
+
+        int maxEntries = 0;
+        while ((de = readdir(dr)) != NULL)
+        {
+            maxEntries++;
+        }
+        rewinddir(dr);
+        int counter = 0;
+        static int position = 0;
+        if (ctx->input->buttonsUp & KEY_UP)
+        {
+            position--;
+            if (position < 0)
+            {
+                position = 0;
+            }
+        }
+
+        if (ctx->input->buttonsUp & KEY_DOWN)
+        {
+            position++;
+            if (position > maxEntries)
+            {
+                position = maxEntries;
+            }
+        }
+        int textRowCounter = 0;
+        while ((de = readdir(dr)) != NULL)
+        {
+
+            //fprintf(out, "%s\n", de->d_name);
+            char buffer[64];
+            if (counter >= position)
+            {
+                snprintf(buffer,sizeof(buffer),"%s",de->d_name);
+                NF_WriteText(0,0,1,textRowCounter,buffer);
+                textRowCounter++;
+            }
+            counter++ ;
+        }
+        fclose(out);
+        closedir(dr);
+}
 int main(int argc, char **argv){
     editorContext editor = {};
     playerContext player = {};
@@ -135,14 +213,19 @@ int main(int argc, char **argv){
         NF_SpriteRotScale(1,i + 1,0,256 + 128,256 + 128);
 
     }
+    showKeyboard(false);
 
 
     state = MAIN_MENU;
+
+
+    //testWriteSizes();
     while (1)
     {
 
         NF_ClearTextLayer(0, 0);
         scanKeys();
+        readDirs(&ctx);
          ctx.input->buttonsDown = keysDown();
          ctx.input->buttonsHeld = keysHeld();
          ctx.input->buttonsUp = keysUp();
@@ -159,16 +242,10 @@ int main(int argc, char **argv){
                 scrollLogic(&ctx);
                 NF_MoveSprite(1,0,(ctx.editor->currentBlock * 20) + 30,3);
                 if(state == PLAY_SCREEN){
-                    //if (ctx.editor->flagPosX >= 0 && ctx.editor->flagPosY >= 0)
-                    //{
+
                     ctx.player->playerX = ctx.editor->flagPosX*16;
                     ctx.player->playerY = ctx.editor->flagPosY*16;
-                    //}else
-                    //{
-                        //ctx.player->playerX = ctx.editor->leftMostX * 16;
-                        //ctx.player->playerY = ctx.editor->leftMostY * 16;
 
-                    //}
                     ctx.coords->cameraX = ctx.player->playerX - 128;
                     ctx.coords->cameraY = ctx.player->playerY - 96;
                     ctx.coords->scrollX = 128;
@@ -218,7 +295,7 @@ int main(int argc, char **argv){
                 }
                 break;
         }
-        debugText(&ctx);
+        //debugText(&ctx);
         NF_SpriteOamSet(0);
         NF_SpriteOamSet(1);
         swiWaitForVBlank();

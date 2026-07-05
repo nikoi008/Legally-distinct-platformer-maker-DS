@@ -9,7 +9,6 @@
 void initialise(){
     NF_Set2D(0, 0);
     NF_Set2D(1, 0);
-    consoleDemoInit();
     swiWaitForVBlank();
 
     nitroFSInit(NULL);
