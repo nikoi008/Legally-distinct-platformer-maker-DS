@@ -88,10 +88,12 @@ void showDirs(gameContext *ctx)
             char buffer[64];
             if (counter >= position)
             {
-
                 snprintf(buffer,sizeof(buffer),"%s",de->d_name);
-                NF_WriteText(0,0,1,textRowCounter % 32,buffer);
-                textRowCounter+= 2;
+                if (!(strchr(buffer,'.') != NULL))
+                {
+                    NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
+                    textRowCounter+= 2;
+                }
             }
             counter++ ;
         }
