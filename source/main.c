@@ -212,6 +212,23 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,5,5,false);
     NF_VramSpritePal(1,5,5);
 
+    NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
+    NF_LoadSpritePal("bg/uiAssets",6);
+    NF_VramSpriteGfx(1,6,6,false);
+    NF_VramSpritePal(1,6,6);
+
+    NF_CreateSprite(1,30,6,6,100,100);
+    NF_CreateSprite(1,31,6,6,120,100);
+    NF_CreateSprite(1,32,6,6,140,100);
+
+    NF_SpriteFrame(1,31,1);
+    NF_SpriteFrame(1,32,2);
+
+
+
+
+
+
     for (int i = 0; i < 12; i++)
     {
         NF_CreateSprite(1,18 +i,5,5,18 * i,45);
@@ -224,7 +241,7 @@ int main(int argc, char **argv){
     showKeyboard(false);
 
 
-    state = LEVEL_LOAD;
+    state = EDITOR;
 
 
     //testWriteSizes();

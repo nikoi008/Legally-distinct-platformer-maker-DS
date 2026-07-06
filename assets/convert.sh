@@ -10,6 +10,9 @@ $GRIT player.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT highlight.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT key.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT letters.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT uiAssets.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT bottomHud.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+
 
 
 $GRIT HUD.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
