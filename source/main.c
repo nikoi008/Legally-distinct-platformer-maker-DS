@@ -37,99 +37,71 @@ void testWriteSizes()
     fclose(f);
 }
 
+
 void showDirs(gameContext *ctx)
 {
-        struct dirent *de;
+    static char levels[512][16];
+    static int maxEntries = 0;
+    static bool alreadyRead = false;
+    static int position = 0;
+    static int frame = 0;
+
+    if (!alreadyRead)
+    {
         DIR *dr = opendir("fat:/YouMakeLevels/");
-        FILE *out = fopen("fat:/YouMakeLevels/allLevels.txt", "w");
-
-        if (dr == NULL)
+        struct dirent *de;
+        while (dr != NULL && (de = readdir(dr)) != NULL)
         {
-            //volatile int *p = (volatile int *)0;
-            //*p = 1; uncomment incase it misbehaves
-        }
-
-        if (out == NULL)
-        {
-            //volatile int *p = (volatile int *)0;
-            //*p = 1;
-        }
-
-        int maxEntries = 0;
-        while ((de = readdir(dr)) != NULL)
-        {
+            strncpy(levels[maxEntries], de->d_name, 15);
+            levels[maxEntries][15] = '\0';
             maxEntries++;
         }
-        rewinddir(dr);
-        int counter = 0;
-        static int position = 0;
-        if (ctx->input->buttonsUp & KEY_UP)
+        if (dr != NULL) closedir(dr);
+        alreadyRead = true;
+    }
+
+    frame = (frame + 1) % 60;
+
+    if (ctx->input->buttonsUp & KEY_UP)
+    {
+        position--;
+        if (position < 0) position = 0;
+    }
+    if (ctx->input->buttonsUp & KEY_DOWN)
+    {
+        position++;
+        if (position >= maxEntries) position = maxEntries - 1;
+    }
+
+    int textRowCounter = 0;
+    for (int i = 0; i < maxEntries; i++)
+    {
+        if (strchr(levels[i], '.') != NULL) continue;
+        if (i < position) continue;
+
+        bool isSelected = (i == position);
+        bool blinkOn = (frame <= 30);
+
+        if (!isSelected || blinkOn)
         {
-            position--;
-            if (position < 0)
+            NF_WriteText(0, 0, 1, (textRowCounter % 32) + 1, levels[i]);
+        }
+
+        if (isSelected)
+        {
+            NF_WriteText(0, 0, 1, 0, levels[i]);
+
+            if (ctx->input->buttonsUp & KEY_A)
             {
-                position = 0;
+                state = EDITOR;
+                char dir[64] = "fat:/YouMakeLevels/";
+                strcat(dir, levels[i]);
+                loadLevel(dir, ctx);
             }
         }
 
-        if (ctx->input->buttonsUp & KEY_DOWN)
-        {
-            position++;
-            if (position > maxEntries)
-            {
-                position = maxEntries;
-            }
-        }
-        int textRowCounter = 0;
-        while ((de = readdir(dr)) != NULL)
-        {
-
-            //fprintf(out, "%s\n", de->d_name);
-            static int frame = 0;
-            frame++;
-            char buffer[64];
-            char highlightedLevel[64];
-            if (counter >= position)
-            {
-                snprintf(buffer,sizeof(buffer),"%s",de->d_name);
-                if (!(strchr(buffer,'.') != NULL))
-                {
-                    if (frame <= 30 && (textRowCounter % 32) + 1 == 11)
-                    {
-                        memset(highlightedLevel,0,sizeof(highlightedLevel));
-                        snprintf(highlightedLevel,sizeof(highlightedLevel),"%s",de->d_name);
-                        NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
-
-                    }
-                    else if (frame >= 60 && (textRowCounter % 32) + 1 == 11)
-                    {
-                        memset(highlightedLevel,0,sizeof(highlightedLevel));
-                        snprintf(highlightedLevel,sizeof(highlightedLevel),"%s",de->d_name);
-                        frame = 0;
-                    }
-                    else
-                    {
-                        NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
-                    }
-
-                    textRowCounter+= 2;
-                    NF_WriteText(0,0,1,0,highlightedLevel);
-                    if (ctx->input->buttonsUp & KEY_A)
-                    {
-                        state = EDITOR;
-                        char dir[64] = "fat:/YouMakeLevels/";
-                        strcat(dir,highlightedLevel);
-                        loadLevel(dir,ctx); //todo actually deal with loadlevel loading centered (if it doesnt already)
-                    }
-
-
-
-                }
-            }
-            counter++ ;
-        }
-        fclose(out);
-        closedir(dr);
+        textRowCounter += 2;
+    }
 }
 
 
