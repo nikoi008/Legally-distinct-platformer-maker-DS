@@ -177,9 +177,6 @@ int main(int argc, char **argv){
      NF_SpriteFrame(1,9,4);
      NF_SpriteFrame(1,10,5);
 
-
-
-
      ctx.player->grounded = true;
      ctx.editor->currentBlock = 1;
      ctx.editor->rectFillOn = false;
@@ -217,7 +214,7 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,6,6,false);
     NF_VramSpritePal(1,6,6);
 
-    NF_CreateSprite(1,30,6,6,10,173);
+    NF_CreateSprite(1,37,6,6,10,173);
     NF_CreateSprite(1,31,6,6,30,173);
     NF_CreateSprite(1,32,6,6,50,173);
 
@@ -239,6 +236,7 @@ int main(int argc, char **argv){
     NF_SpriteFrame(1,35,2);
     NF_SpriteFrame(1,36,3);
 
+    NF_CreateSprite(1,30,1,1,10,173);
 
 
 
