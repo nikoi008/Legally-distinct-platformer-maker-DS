@@ -78,31 +78,34 @@ void editorInputKeys(gameContext *ctx){
         ctx->coords->cameraY += SPEED;
     }
 }
+
 void editorFrame(gameContext *ctx)
 {
     if (!ctx->input->keyboardOn){
         editorInputKeys(ctx);
 
-        if(ctx->input->buttonsHeld & KEY_TOUCH && !ctx->editor->rectFillOn){
+        bool touchActive = (ctx->input->buttonsHeld & KEY_TOUCH) || (ctx->input->buttonsDown & KEY_TOUCH);
+        if(touchActive){
             touchRead(&ctx->input->touchPos);
             ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
             ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
+        }
 
-            if(ctx->input->touchPos.py >= HUD_Y_START){//hud width
+        bool touchedToggleButton = touchActive && (ctx->input->touchPos.px >= 10 && ctx->input->touchPos.px <= 26 && ctx->input->touchPos.py >= 173);
+
+        if(ctx->input->buttonsHeld & KEY_TOUCH && !ctx->editor->rectFillOn && !touchedToggleButton){
+            if(ctx->input->touchPos.py >= HUD_Y_START && ctx->input->touchPos.py <= 192 - 22){//hud width
                 addTile(ctx->input->touchTileX,ctx->input->touchTileY,ctx->editor->currentBlock,ctx->editor);
             }
             updateTiles(ctx);
         }
         if(ctx->input->buttonsDown & KEY_B && ctx->editor->currentBlock != 2){
             ctx->editor->rectFillOn = !ctx->editor->rectFillOn;
+            ctx->editor->firstTouchX = -1;
+            ctx->editor->firstTouchY = -1;
         }
 
-        if (ctx->input->buttonsDown & KEY_TOUCH && !ctx->editor->rectFillOn){
-            touchRead(&ctx->input->touchPos);
-
-            ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
-            ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
-
+        if (ctx->input->buttonsDown & KEY_TOUCH && !ctx->editor->rectFillOn && !touchedToggleButton){
             if(ctx->input->touchPos.py <= HUD_Y_START){//hud width
                 if(ctx->input->touchPos.px /16  <= 1){
                     ctx->editor->currentBlock = abs((ctx->editor->currentBlock - 1)% TOTAL_BLOCKS);
@@ -118,15 +121,14 @@ void editorFrame(gameContext *ctx)
             }
             updateTiles(ctx);
         }
-        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX < 0 || ctx->editor->firstTouchY < 0) && ctx->input->buttonsHeld & KEY_TOUCH){
-            touchRead(&ctx->input->touchPos);
-            ctx->editor->firstTouchX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
-            ctx->editor->firstTouchY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
+        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX < 0 || ctx->editor->firstTouchY < 0) && ctx->input->buttonsHeld & KEY_TOUCH && !touchedToggleButton){
+            ctx->editor->firstTouchX = ctx->input->touchTileX;
+            ctx->editor->firstTouchY = ctx->input->touchTileY;
         }
-        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsHeld & KEY_TOUCH){
+        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsHeld & KEY_TOUCH && !touchedToggleButton){
             rectangleFillPreview(ctx);
         }
-        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsUp & KEY_TOUCH){
+        else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsUp & KEY_TOUCH && !touchedToggleButton){
             fill(ctx);
         }
 
@@ -141,15 +143,19 @@ void editorFrame(gameContext *ctx)
             NF_DeleteTiledBg(1,2);
             lcdSwap();
         }
+        //NF_CreateSprite(1,30,1,1,10,173);
+        if (ctx->input->buttonsDown & KEY_TOUCH && touchedToggleButton)
+        {
+            ctx->editor->rectFillOn = !ctx->editor->rectFillOn;
+            ctx->editor->firstTouchX = -1;
+            ctx->editor->firstTouchY = -1;
+        }
+        NF_ShowSprite(1,30,ctx->editor->rectFillOn);
         if (ctx->input->buttonsDown & KEY_SELECT)
         {
             ctx->input->keyboardOn = true;
             showKeyboard(true);
             state = LEVEL_SAVE;
-        }
-
-        if(ctx->input->buttonsDown & KEY_Y){
-            loadLevel("fat:/YouMakeLevels/level.txt",ctx);
         }
     }
 }
