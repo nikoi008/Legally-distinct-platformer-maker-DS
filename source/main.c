@@ -94,14 +94,14 @@ void showDirs(gameContext *ctx)
                 snprintf(buffer,sizeof(buffer),"%s",de->d_name);
                 if (!(strchr(buffer,'.') != NULL))
                 {
-                    if (frame <= 60 && (textRowCounter % 32) + 1 == 11)
+                    if (frame <= 30 && (textRowCounter % 32) + 1 == 11)
                     {
                         memset(highlightedLevel,0,sizeof(highlightedLevel));
                         snprintf(highlightedLevel,sizeof(highlightedLevel),"%s",de->d_name);
                         NF_WriteText(0,0,1,(textRowCounter % 32) + 1,buffer);
 
                     }
-                    else if (frame >= 120 && (textRowCounter % 32) + 1 == 11)
+                    else if (frame >= 60 && (textRowCounter % 32) + 1 == 11)
                     {
                         memset(highlightedLevel,0,sizeof(highlightedLevel));
                         snprintf(highlightedLevel,sizeof(highlightedLevel),"%s",de->d_name);
@@ -119,7 +119,7 @@ void showDirs(gameContext *ctx)
                         state = EDITOR;
                         char dir[64] = "fat:/YouMakeLevels/";
                         strcat(dir,highlightedLevel);
-                        loadLevel(dir); //todo actually deal with loadlevel loading centered (if it doesnt already)
+                        loadLevel(dir,ctx); //todo actually deal with loadlevel loading centered (if it doesnt already)
                     }
 
 
@@ -271,6 +271,7 @@ int main(int argc, char **argv){
                 state = EDITOR;
             break;
             case EDITOR:
+                debugText(&ctx);
                 NF_ShowSprite(1,5,false);
                 NF_ShowSprite(1,0,true);
                 editorFrame(&ctx);
@@ -355,7 +356,6 @@ int main(int argc, char **argv){
 
 
         }
-        //debugText(&ctx);
         NF_SpriteOamSet(0);
         NF_SpriteOamSet(1);
         swiWaitForVBlank();

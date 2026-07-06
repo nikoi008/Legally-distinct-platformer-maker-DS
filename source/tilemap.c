@@ -38,6 +38,19 @@ void loadLevel(char* name,gameContext *ctx){
     FILE *ptr = fopen(name, "rb");
     if (!ptr) return;
     fread(TILE_MAP, sizeof(u8), GRID_X * GRID_Y, ptr);
+
+    for (int i = 0; i < GRID_Y; i++)
+    {
+        for (int j = 0; j < GRID_X; j++)
+        {
+            if (TILE_MAP[i][j] == 2)
+            {
+                ctx->editor->flagPosX = j;
+                ctx->editor->flagPosY = i;
+            }
+
+        }
+    }
     fclose(ptr);
 
     updateTiles(ctx);
