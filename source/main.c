@@ -20,7 +20,16 @@
 #include "init.h"
 #include "keyboard.h"
 
-
+void setGreyBg()
+{
+    for (int x = 0; x < 512 / 8; x++)
+    {
+        for (int y = 0; y < 512/ 8; y++)
+        {
+            NF_SetTileOfMap(1, TILE_LAYER, x,y,TRANSPARENT_BLOCK_OFFSET + TRANSPARENT_BLOCK_OFFSET); //changing bg registers easier?
+        }
+    }
+}
 
 void testWriteSizes()
 {
@@ -283,7 +292,7 @@ int main(int argc, char **argv){
             case MAIN_MENU:
                 //state = EDITOR;
                 nocashMessage("main menu");
-
+                setGreyBg();
 
             break;
             case EDITOR:
