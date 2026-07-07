@@ -19,6 +19,9 @@
 #include "debug.h"
 #include "init.h"
 #include "keyboard.h"
+
+
+
 void testWriteSizes()
 {
     FILE *f;
@@ -103,6 +106,12 @@ void showDirs(gameContext *ctx)
         textRowCounter += 2;
     }
 }
+
+void hideEditor()
+{
+    
+}
+
 
 
 int main(int argc, char **argv){
@@ -217,9 +226,12 @@ int main(int argc, char **argv){
     NF_CreateSprite(1,37,6,6,10,173);
     NF_CreateSprite(1,31,6,6,30,173);
     NF_CreateSprite(1,32,6,6,50,173);
+    NF_CreateSprite(1,33,6,6,70,173);
 
     NF_SpriteFrame(1,31,1);
     NF_SpriteFrame(1,32,2);
+    NF_SpriteFrame(1,33,3);
+
 
 
     NF_LoadSpriteGfx("bg/bottomHud",7,64,32);
@@ -227,14 +239,15 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,7,7,false);
     NF_VramSpritePal(1,7,7);
 
-    NF_CreateSprite(1,33,7,7,0,192-22); //todo probably make a define for this
-    NF_CreateSprite(1,34,7,7,64,192-22);
-    NF_CreateSprite(1,35,7,7,128,192-22);
-    NF_CreateSprite(1,36,7,7,192,192-22);
+    NF_CreateSprite(1,34,7,7,0,192-22); //todo probably make a define for this
+    NF_CreateSprite(1,35,7,7,64,192-22);
+    NF_CreateSprite(1,36,7,7,128,192-22);
+    NF_CreateSprite(1,38,7,7,192,192-22);
 
-    NF_SpriteFrame(1,34,1);
-    NF_SpriteFrame(1,35,2);
-    NF_SpriteFrame(1,36,3);
+    NF_SpriteFrame(1,35,1);
+    NF_SpriteFrame(1,36,2);
+    NF_SpriteFrame(1,38,3);
+
 
     NF_CreateSprite(1,30,1,1,10,173);
 
@@ -268,7 +281,10 @@ int main(int argc, char **argv){
 
         switch(state){
             case MAIN_MENU:
-                state = EDITOR;
+                //state = EDITOR;
+                nocashMessage("main menu");
+
+
             break;
             case EDITOR:
                 debugText(&ctx);
