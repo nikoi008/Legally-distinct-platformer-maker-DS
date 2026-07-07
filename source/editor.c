@@ -151,7 +151,7 @@ void editorFrame(gameContext *ctx)
             ctx->editor->firstTouchY = -1;
         }
         NF_ShowSprite(1,30,ctx->editor->rectFillOn);
-        if (ctx->input->buttonsDown & KEY_SELECT)
+        if (ctx->input->buttonsDown & KEY_SELECT || (ctx->input->buttonsDown & KEY_TOUCH && (ctx->input->touchPos.px >= 50 && ctx->input->touchPos.px <= 65 && ctx->input->touchPos.py >= 173 )))
         {
             ctx->input->keyboardOn = true;
             showKeyboard(true);
