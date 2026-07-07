@@ -157,5 +157,9 @@ void editorFrame(gameContext *ctx)
             showKeyboard(true);
             state = LEVEL_SAVE;
         }
+        if ((ctx->input->buttonsDown & KEY_TOUCH && (ctx->input->touchPos.px >= 30 && ctx->input->touchPos.px <= 45 && ctx->input->touchPos.py >= 173 )))
+        {
+            state = MAIN_MENU;
+        }
     }
 }
