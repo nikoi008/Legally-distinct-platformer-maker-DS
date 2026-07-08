@@ -79,12 +79,7 @@ void editorInputKeys(gameContext *ctx){
     }
 }
 
-int clampInt(int val,int min, int max)
-{
-    if (val < min) return min;
-    if (val > max) return max;
-    return val;
-}
+
 void editorFrame(gameContext *ctx)
 {
     if (!ctx->input->keyboardOn){
@@ -168,71 +163,10 @@ void editorFrame(gameContext *ctx)
             state = MAIN_MENU;
         }
         static bool changePal = false;
-        static int row = 0;
-        static int R = 9;
-        static int G = 19;
-        static int B = 28;
         if (ctx->input->buttonsUp & KEY_R)
         {
             changePal = !changePal;
-        }
-        if (changePal)
-        {
-            if (ctx->input->buttonsUp & KEY_UP)
-            {
-                row++;
-                clampInt(row,0,2);
-            }
-            if (ctx->input->buttonsUp & KEY_DOWN)
-            {
-                row--;
-                clampInt(row,0,2);
-            }
-
-
-            if (ctx->input->buttonsUp & KEY_LEFT)
-            {
-                switch (row)
-                {
-                    case 0:
-                        R--;
-                        clampInt(R,0,31);
-                        break;
-                    case 1:
-                        G--;
-                        clampInt(G,0,31);
-                        break;
-                    case 2:
-                        B--;
-                        clampInt(B,0,31);
-                        break;
-                }
-            }
-
-            if (ctx->input->buttonsUp & KEY_RIGHT)
-            {
-                switch (row)
-                {
-                case 0:
-                    R++;
-                    clampInt(R,0,31);
-                    break;
-                case 1:
-                    G++;
-                    clampInt(G,0,31);
-                    break;
-                case 2:
-                    B++;
-                    clampInt(B,0,31);
-                    break;
-                }
-            }
-            char buffer[64];
-            snprintf(buffer,sizeof(buffer),"ro%d r%d g%d b%d");
-            nocashMessage(buffer);
-            BG_PALETTE_SUB[0] = RGB15(R, G, B);
-            BG_PALETTE[0] = RGB15(R, G, B);
-
+            state = CHANGE_PAL;
         }
 
     }

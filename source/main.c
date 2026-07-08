@@ -121,6 +121,12 @@ void hideEditor()
     
 }
 
+int clampInt(int val,int min, int max)
+{
+    if (val < min) return min;
+    if (val > max) return max;
+    return val;
+}
 
 
 int main(int argc, char **argv){
@@ -155,7 +161,7 @@ int main(int argc, char **argv){
     NF_VramSpritePal(1, 0, 0);
 
   
-
+/*
     NF_CreateSprite(1, 1, 0, 0, 0, 0);
     NF_SpriteFrame(1, 1, 0);
     NF_CreateSprite(1, 2, 0, 0, 64, 0);
@@ -163,19 +169,19 @@ int main(int argc, char **argv){
     NF_CreateSprite(1, 3, 0, 0, 128, 0);
     NF_SpriteFrame(1, 3, 2); //all hud elements + frames
     NF_CreateSprite(1, 4, 0, 0, 192, 0);
-    NF_SpriteFrame(1, 4, 3);
+    NF_SpriteFrame(1, 4, 3);*/
 
     NF_LoadSpriteGfx("bg/highlight",1,16,16);
     NF_LoadSpritePal("bg/highlight",1);
     NF_VramSpriteGfx(1,1,1,true);
     NF_VramSpritePal(1,1,1);
-    NF_CreateSprite(1,0,1,1,29,3);
-
+    //NF_CreateSprite(1,0,1,1,29,3);
+    /*
     NF_LoadSpriteGfx("bg/player",2,32,32); //todo probably make the sprite folder somewhat soon xx
     NF_LoadSpritePal("bg/player",2);
     NF_VramSpriteGfx(1,2,2,false);
     NF_VramSpritePal(1,2,2);
-    NF_CreateSprite(1,5,2,2,100,50);
+    NF_CreateSprite(1,5,2,2,100,50);*/
     initBlocks(&ctx);
     
 
@@ -183,7 +189,7 @@ int main(int argc, char **argv){
     NF_LoadSpritePal("bg/tileSprites",3);
     NF_VramSpriteGfx(1,3,3,false);
     NF_VramSpritePal(1,3,3);
-
+    /*
     for(int i = 0; i < 10; i++){
         NF_CreateSprite(1,i + 6,3,3,30 + (i * 20),3);
         NF_SpriteFrame(1,i + 6,0);
@@ -193,7 +199,7 @@ int main(int argc, char **argv){
      NF_SpriteFrame(1,7,2);
      NF_SpriteFrame(1,8,3);
      NF_SpriteFrame(1,9,4);
-     NF_SpriteFrame(1,10,5);
+     NF_SpriteFrame(1,10,5);*/
 
      ctx.player->grounded = true;
      ctx.editor->currentBlock = 1;
@@ -227,7 +233,7 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,5,5,false);
     NF_VramSpritePal(1,5,5);
 
-    NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
+    /*NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
     NF_LoadSpritePal("bg/uiAssets",6);
     NF_VramSpriteGfx(1,6,6,false);
     NF_VramSpritePal(1,6,6);
@@ -239,7 +245,7 @@ int main(int argc, char **argv){
 
     NF_SpriteFrame(1,31,1);
     NF_SpriteFrame(1,32,2);
-    NF_SpriteFrame(1,33,3);
+    NF_SpriteFrame(1,33,3);*/
 
 
 
@@ -247,7 +253,7 @@ int main(int argc, char **argv){
     NF_LoadSpritePal("bg/bottomHud",7);
     NF_VramSpriteGfx(1,7,7,false);
     NF_VramSpritePal(1,7,7);
-
+/*
     NF_CreateSprite(1,34,7,7,0,192-22); //todo probably make a define for this
     NF_CreateSprite(1,35,7,7,64,192-22);
     NF_CreateSprite(1,36,7,7,128,192-22);
@@ -255,10 +261,29 @@ int main(int argc, char **argv){
 
     NF_SpriteFrame(1,35,1);
     NF_SpriteFrame(1,36,2);
-    NF_SpriteFrame(1,38,3);
+    NF_SpriteFrame(1,38,3);*/
 
 
-    NF_CreateSprite(1,30,1,1,10,173);
+   // NF_CreateSprite(1,30,1,1,10,173);
+
+    NF_LoadSpriteGfx("bg/incrementbtn",8,64,32);
+    NF_LoadSpritePal("bg/incrementbtn",8);
+    NF_VramSpriteGfx(1,8,8,false);
+    NF_VramSpritePal(1,8,8);
+
+    NF_CreateSprite(1,39,8,8,16,48);
+    NF_CreateSprite(1,40,8,8,16,80);
+    NF_CreateSprite(1,41,8,8,16,112);
+
+    NF_CreateSprite(1,42,8,8,176,48);
+    NF_CreateSprite(1,43,8,8,176,80);
+    NF_CreateSprite(1,44,8,8,176,112);
+
+    NF_SpriteFrame(1,42,1);
+    NF_SpriteFrame(1,43,1);
+    NF_SpriteFrame(1,44,1);
+
+
 
 
 
@@ -271,11 +296,19 @@ int main(int argc, char **argv){
         NF_SpriteRotScale(1,i + 1,0,256 + 128,256 + 128);
 
     }
+
+    for (int i = 0; i < 16; i++)
+    {
+        NF_CreateSprite(1,45 +i,5,5, 8 * i,45);
+    }
+    NF_CreateSprite(1,63,8,8,192,176);
+    NF_SpriteFrame(1,63,2);
+    NF_CreateSprite(1,64,8,8,0,176);
+    NF_SpriteFrame(1,64,3);
     showKeyboard(false);
 
 
-    state = EDITOR;
-
+    state = CHANGE_PAL;
 
     //testWriteSizes();
     while (1)
@@ -375,9 +408,185 @@ int main(int argc, char **argv){
                     //todo add a cancel button
                 }
                 NF_WriteText(0,0,0,14,word);
+            break;
 
             case LEVEL_LOAD:
                 showDirs(&ctx);
+                break;
+
+            case CHANGE_PAL:
+            {
+                NF_WriteText(0,0,0,0,"Preview");
+                static int row = 0;
+                static int R = 9;
+                static int G = 19;
+                static int B = 28;
+
+                if (ctx.input->buttonsDown & KEY_TOUCH || ctx.input->buttonsHeld & KEY_TOUCH)
+                {
+                    touchRead(&ctx.input->touchPos);
+
+                }
+                if (ctx.input->buttonsUp & KEY_TOUCH && ctx.input->touchPos.px > 16 && ctx.input->touchPos.px < 79)
+                {
+                    if (ctx.input->touchPos.py > 48 && ctx.input->touchPos.py < 63)
+                    {
+                        row = 0;
+                        R++;
+                        R = clampInt(R,0, 31);
+                    }
+                    else if (ctx.input->touchPos.py > 80 && ctx.input->touchPos.py < 95)
+                    {
+
+                        row = 1;
+                        G++;
+                        G = clampInt(G,0, 31);
+                    }
+                    else if (ctx.input->touchPos.py > 112 && ctx.input->touchPos.py < 127)
+                    {
+                        row = 2;
+                        B++;
+                        B = clampInt(B, 0, 31);
+                    }
+
+                }
+                if (ctx.input->buttonsUp & KEY_TOUCH && ctx.input->touchPos.px > 176 && ctx.input->touchPos.px < 239)
+                {
+                    //row++;
+                    //row = clampInt(row,0, 2);
+                    if (ctx.input->touchPos.py > 48 && ctx.input->touchPos.py < 63)
+                    {
+                        row = 0;
+                        R--;
+                        R = clampInt(R,0, 31);
+                    }
+                    else if (ctx.input->touchPos.py > 80 && ctx.input->touchPos.py < 95)
+                    {
+
+                        row = 1;
+                        G--;
+                        G = clampInt(G,0, 31);
+                    }
+                    else if (ctx.input->touchPos.py > 112 && ctx.input->touchPos.py < 127)
+                    {
+                        row = 2;
+                        B--;
+                        B = clampInt(B, 0, 31);
+                    }
+
+                }
+
+                if (ctx.input->touchPos.py >=  176)
+                {
+                    if (ctx.input->touchPos.px >= 0 && ctx.input->touchPos.px <= 63 )
+                    {
+                        R = 9;
+                        G = 19;
+                        B = 28;
+                    }
+
+                    if (ctx.input->touchPos.px >= 192 && ctx.input->touchPos.px <= 255 )
+                    {
+                        state = EDITOR;
+
+                    }
+                }
+                char change[16] = "CHANGE BG COLOUR";
+                for (int i = 0; i < 16; i++)
+                {
+                    NF_SpriteFrame(1,45 + i,getLetterFrame(&change[i]));
+                    NF_MoveSprite(1,45 + i,8 * i, 0);
+                }
+
+
+                //NF_WriteText()
+
+
+                BG_PALETTE_SUB[0] = RGB15(R, G, B);
+                BG_PALETTE[0] = RGB15(R, G, B);
+
+                char Rc[2] = "R";
+                NF_SpriteFrame(1, 18, getLetterFrame(&Rc[0]));
+
+                char rBuffer[4] = {0};
+                snprintf(rBuffer, sizeof(rBuffer), "%d", R);
+                if (R >= 10)
+                {
+                    NF_SpriteFrame(1, 19  + 1, getLetterFrame(&rBuffer[0]));
+                    NF_SpriteFrame(1, 20 + 1, getLetterFrame(&rBuffer[1]));
+                }
+                else
+                {
+                    char ZeroC[2] = "0";
+
+                    NF_SpriteFrame(1, 19  + 1, getLetterFrame(&ZeroC[0]));
+                    NF_SpriteFrame(1, 20  + 1, getLetterFrame(&rBuffer[0]));
+                }
+
+
+                char Gc[2] = "G";
+                NF_SpriteFrame(1, 18 + 4, getLetterFrame(&Gc[0]));
+
+                char gBuffer[4] = {0};
+                snprintf(gBuffer, sizeof(gBuffer), "%d", G);
+                if (G >= 10)
+                {
+                    NF_SpriteFrame(1, 19 + 4  + 1, getLetterFrame(&gBuffer[0]));
+                    NF_SpriteFrame(1, 20 + 4  + 1, getLetterFrame(&gBuffer[1]));
+                }
+                else
+                {
+                    char ZeroC[2] = "0";
+
+                    NF_SpriteFrame(1, 19 + 4  + 1, getLetterFrame(&ZeroC[0]));
+                    NF_SpriteFrame(1, 20 + 4  + 1, getLetterFrame(&gBuffer[0]));
+                }
+
+
+                char Bc[2] = "B";
+                NF_SpriteFrame(1, 18 + 8, getLetterFrame(&Bc[0]));
+
+                char bBuffer[4] = {0};
+                snprintf(bBuffer, sizeof(bBuffer), "%d", B);
+                if (B >= 10)
+                {
+                    NF_SpriteFrame(1, 19 + 8 + 1, getLetterFrame(&bBuffer[0]));
+                    NF_SpriteFrame(1, 20 + 8 + 1, getLetterFrame(&bBuffer[1]));
+                }
+                else
+                {
+                    char ZeroC[2] = "0";
+
+                    NF_SpriteFrame(1, 19 + 8 + 1, getLetterFrame(&ZeroC[0]));
+                    NF_SpriteFrame(1, 20 + 8 + 1, getLetterFrame(&bBuffer[0]));
+                }
+
+
+                for (int i = 0; i < 4; i++)
+                {
+                    NF_ShowSprite(1, 18 + i, true);
+                    NF_ShowSprite(1, 18 + 4 + i, true);
+                    NF_ShowSprite(1, 18 + 8 + i, true);
+                    NF_MoveSprite(1, 18 + i, 96 + (16 * i), 48);
+                    NF_MoveSprite(1, 18 + i + 4, 96 + (16 * i), 80);
+                    NF_MoveSprite(1, 18 + i + 8, 96 + (16 * i), 112);
+                }
+                char space[2] = " ";
+                int frameSpace = getLetterFrame(&space[0]);
+                NF_SpriteFrame(1,19,frameSpace);
+                NF_SpriteFrame(1,23,frameSpace);
+                NF_SpriteFrame(1,27,frameSpace);
+                static bool hidden = false;
+                    if (!hidden)
+                    {
+                        NF_HideBg(1,2);
+                        setGreyBg();
+                        hidden = true;
+                    }
+
+
+                break;
+            }
 
 
         }

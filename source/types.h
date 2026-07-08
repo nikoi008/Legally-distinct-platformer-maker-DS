@@ -8,7 +8,8 @@ typedef enum{
     EDITOR,
     PLAY_SCREEN,
     LEVEL_SAVE,
-    LEVEL_LOAD
+    LEVEL_LOAD,
+    CHANGE_PAL
 } gameStates;
 
 typedef enum{
