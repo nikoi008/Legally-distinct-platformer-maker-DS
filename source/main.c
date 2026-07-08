@@ -341,6 +341,11 @@ int main(int argc, char **argv){
                     scrollLogic(&ctx);
                     updateTiles(&ctx);
                 }
+                if (state == CHANGE_PAL)
+                {
+                    showChangePalWindow(true);
+                    showEditor(false);
+                }
                 break;
 
 

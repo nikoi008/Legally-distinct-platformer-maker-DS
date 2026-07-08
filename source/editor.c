@@ -162,12 +162,11 @@ void editorFrame(gameContext *ctx)
         {
             state = MAIN_MENU;
         }
-        static bool changePal = false;
-        if (ctx->input->buttonsUp & KEY_R)
+        if ((ctx->input->buttonsDown & KEY_TOUCH && (ctx->input->touchPos.px >= 70 && ctx->input->touchPos.px <= 85 && ctx->input->touchPos.py >= 173 )))
         {
-            changePal = !changePal;
             state = CHANGE_PAL;
         }
+
 
     }
 }
