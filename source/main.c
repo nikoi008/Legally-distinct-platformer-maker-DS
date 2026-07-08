@@ -19,6 +19,7 @@
 #include "debug.h"
 #include "init.h"
 #include "keyboard.h"
+#include "file_handling.h"
 
 void setGreyBg()
 {
@@ -29,96 +30,6 @@ void setGreyBg()
             NF_SetTileOfMap(1, TILE_LAYER, x,y,TRANSPARENT_BLOCK_OFFSET + TRANSPARENT_BLOCK_OFFSET); //changing bg registers easier?
         }
     }
-}
-
-void testWriteSizes()
-{
-    FILE *f;
-    size_t n;
-
-    f = fopen("fat:/YouMakeLevels/test1k.bin", "wb");
-    n = fwrite(TILE_MAP, 1, 1024, f);
-    fclose(f);
-
-    f = fopen("fat:/YouMakeLevels/test64k.bin", "wb");
-    n = fwrite(TILE_MAP, 1, 65536, f);
-    fclose(f);
-
-    f = fopen("fat:/YouMakeLevels/test512k.bin", "wb");
-    n = fwrite(TILE_MAP, 1, 524288, f);
-    fclose(f);
-}
-
-
-void showDirs(gameContext *ctx)
-{
-    static char levels[512][16];
-    static int maxEntries = 0;
-    static bool alreadyRead = false;
-    static int position = 0;
-    static int frame = 0;
-
-    if (!alreadyRead)
-    {
-        DIR *dr = opendir("fat:/YouMakeLevels/");
-        struct dirent *de;
-        while (dr != NULL && (de = readdir(dr)) != NULL)
-        {
-            strncpy(levels[maxEntries], de->d_name, 15);
-            levels[maxEntries][15] = '\0';
-            maxEntries++;
-        }
-        if (dr != NULL) closedir(dr);
-        alreadyRead = true;
-    }
-
-    frame = (frame + 1) % 60;
-
-    if (ctx->input->buttonsUp & KEY_UP)
-    {
-        position--;
-        if (position < 0) position = 0;
-    }
-    if (ctx->input->buttonsUp & KEY_DOWN)
-    {
-        position++;
-        if (position >= maxEntries) position = maxEntries - 1;
-    }
-
-    int textRowCounter = 0;
-    for (int i = 0; i < maxEntries; i++)
-    {
-        if (strchr(levels[i], '.') != NULL) continue;
-        if (i < position) continue;
-
-        bool isSelected = (i == position);
-        bool blinkOn = (frame <= 30);
-
-        if (!isSelected || blinkOn)
-        {
-            NF_WriteText(0, 0, 1, (textRowCounter % 32) + 1, levels[i]);
-        }
-
-        if (isSelected)
-        {
-            NF_WriteText(0, 0, 1, 0, levels[i]);
-
-            if (ctx->input->buttonsUp & KEY_A)
-            {
-                state = EDITOR;
-                char dir[64] = "fat:/YouMakeLevels/";
-                strcat(dir, levels[i]);
-                loadLevel(dir, ctx);
-            }
-        }
-
-        textRowCounter += 2;
-    }
-}
-
-void hideEditor()
-{
-    
 }
 
 int clampInt(int val,int min, int max)
@@ -576,12 +487,12 @@ int main(int argc, char **argv){
                 NF_SpriteFrame(1,19,frameSpace);
                 NF_SpriteFrame(1,23,frameSpace);
                 NF_SpriteFrame(1,27,frameSpace);
-                static bool hidden = false;
-                    if (!hidden)
+                static bool gridHidden = false;
+                    if (!gridHidden)
                     {
                         NF_HideBg(1,2);
                         setGreyBg();
-                        hidden = true;
+                        gridHidden = true;
                     }
 
 
