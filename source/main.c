@@ -20,17 +20,98 @@
 #include "init.h"
 #include "keyboard.h"
 #include "file_handling.h"
-
-void setGreyBg()
+void showEditor(bool show)
 {
-    for (int x = 0; x < 512 / 8; x++)
+    if (show) NF_ShowBg(1,2);
+    if (!show)NF_HideBg(1,2);
+    for (int i = 0; i <= 5; i++)
     {
-        for (int y = 0; y < 512/ 8; y++)
+        NF_ShowSprite(1,i,show); //highlight + HUD frames
+    }
+    for (int i = 6; i <= 15; i++)
+    {
+        NF_ShowSprite(1,i,show);
+    }
+    NF_ShowSprite(1,34,show);
+    NF_ShowSprite(1,35,show);
+    NF_ShowSprite(1,36,show);
+    NF_ShowSprite(1,38,show);
+    NF_ShowSprite(1,31,show);
+    NF_ShowSprite(1,32,show);
+    NF_ShowSprite(1,33,show);
+    NF_ShowSprite(1,37,show);
+}
+void setGreyBg(bool set)
+{
+    if (set)
+    {
+        for (int x = 0; x < 512 / 8; x++)
         {
-            NF_SetTileOfMap(1, TILE_LAYER, x,y,TRANSPARENT_BLOCK_OFFSET + TRANSPARENT_BLOCK_OFFSET); //changing bg registers easier?
+            for (int y = 0; y < 512/ 8; y++)
+            {
+                NF_SetTileOfMap(1, TILE_LAYER, x,y,TRANSPARENT_BLOCK_OFFSET + TRANSPARENT_BLOCK_OFFSET); //changing bg registers easier?
+            }
         }
     }
+    else
+    {
+        for (int x = 0; x < 512 / 8; x++)
+        {
+            for (int y = 0; y < 512/ 8; y++)
+            {
+                NF_SetTileOfMap(1, TILE_LAYER, x,y,0); //changing bg registers easier?
+            }
+        }
+    }
+
 }
+void showChangePalWindow(bool show)
+{
+    if (show)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            NF_ShowSprite(1, 18 + i, true);
+            NF_ShowSprite(1, 18 + 4 + i, true);
+            NF_ShowSprite(1, 18 + 8 + i, true);
+            NF_MoveSprite(1, 18 + i, 96 + (16 * i), 48);
+            NF_MoveSprite(1, 18 + i + 4, 96 + (16 * i), 80);
+            NF_MoveSprite(1, 18 + i + 8, 96 + (16 * i), 112);
+
+        }
+        for (int i = 0; i < 16; i++)
+        {
+            NF_MoveSprite(1,45 +i,8 * i,0);
+        }
+
+
+    }
+    else
+    {
+        for (int i = 0; i < 12; i++)
+        {
+            NF_MoveSprite(1,i + 18,300,300);
+
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            NF_MoveSprite(1,45 +i,300,300);
+        }
+    }
+    NF_ShowSprite(1,39,show);
+    NF_ShowSprite(1,40,show);
+    NF_ShowSprite(1,41,show);
+    NF_ShowSprite(1,42,show);
+    NF_ShowSprite(1,43,show);
+    NF_ShowSprite(1,44,show);
+
+    NF_ShowSprite(1,63,show);
+    NF_ShowSprite(1,64,show);
+    setGreyBg(show);
+
+}
+
 
 int clampInt(int val,int min, int max)
 {
@@ -72,7 +153,7 @@ int main(int argc, char **argv){
     NF_VramSpritePal(1, 0, 0);
 
   
-/*
+
     NF_CreateSprite(1, 1, 0, 0, 0, 0);
     NF_SpriteFrame(1, 1, 0);
     NF_CreateSprite(1, 2, 0, 0, 64, 0);
@@ -80,19 +161,18 @@ int main(int argc, char **argv){
     NF_CreateSprite(1, 3, 0, 0, 128, 0);
     NF_SpriteFrame(1, 3, 2); //all hud elements + frames
     NF_CreateSprite(1, 4, 0, 0, 192, 0);
-    NF_SpriteFrame(1, 4, 3);*/
+    NF_SpriteFrame(1, 4, 3);
 
     NF_LoadSpriteGfx("bg/highlight",1,16,16);
     NF_LoadSpritePal("bg/highlight",1);
     NF_VramSpriteGfx(1,1,1,true);
     NF_VramSpritePal(1,1,1);
-    //NF_CreateSprite(1,0,1,1,29,3);
-    /*
+    NF_CreateSprite(1,0,1,1,29,3);
     NF_LoadSpriteGfx("bg/player",2,32,32); //todo probably make the sprite folder somewhat soon xx
     NF_LoadSpritePal("bg/player",2);
     NF_VramSpriteGfx(1,2,2,false);
     NF_VramSpritePal(1,2,2);
-    NF_CreateSprite(1,5,2,2,100,50);*/
+    NF_CreateSprite(1,5,2,2,100,50);
     initBlocks(&ctx);
     
 
@@ -100,17 +180,17 @@ int main(int argc, char **argv){
     NF_LoadSpritePal("bg/tileSprites",3);
     NF_VramSpriteGfx(1,3,3,false);
     NF_VramSpritePal(1,3,3);
-    /*
     for(int i = 0; i < 10; i++){
         NF_CreateSprite(1,i + 6,3,3,30 + (i * 20),3);
         NF_SpriteFrame(1,i + 6,0);
     }
 
+
      NF_SpriteFrame(1,6,1);
      NF_SpriteFrame(1,7,2);
      NF_SpriteFrame(1,8,3);
      NF_SpriteFrame(1,9,4);
-     NF_SpriteFrame(1,10,5);*/
+     NF_SpriteFrame(1,10,5);
 
      ctx.player->grounded = true;
      ctx.editor->currentBlock = 1;
@@ -144,7 +224,7 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,5,5,false);
     NF_VramSpritePal(1,5,5);
 
-    /*NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
+    NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
     NF_LoadSpritePal("bg/uiAssets",6);
     NF_VramSpriteGfx(1,6,6,false);
     NF_VramSpritePal(1,6,6);
@@ -156,7 +236,7 @@ int main(int argc, char **argv){
 
     NF_SpriteFrame(1,31,1);
     NF_SpriteFrame(1,32,2);
-    NF_SpriteFrame(1,33,3);*/
+    NF_SpriteFrame(1,33,3);
 
 
 
@@ -164,7 +244,7 @@ int main(int argc, char **argv){
     NF_LoadSpritePal("bg/bottomHud",7);
     NF_VramSpriteGfx(1,7,7,false);
     NF_VramSpritePal(1,7,7);
-/*
+
     NF_CreateSprite(1,34,7,7,0,192-22); //todo probably make a define for this
     NF_CreateSprite(1,35,7,7,64,192-22);
     NF_CreateSprite(1,36,7,7,128,192-22);
@@ -172,7 +252,7 @@ int main(int argc, char **argv){
 
     NF_SpriteFrame(1,35,1);
     NF_SpriteFrame(1,36,2);
-    NF_SpriteFrame(1,38,3);*/
+    NF_SpriteFrame(1,38,3);
 
 
    // NF_CreateSprite(1,30,1,1,10,173);
@@ -218,9 +298,9 @@ int main(int argc, char **argv){
     NF_SpriteFrame(1,64,3);
     showKeyboard(false);
 
-
+    //showEditor(false);
     state = CHANGE_PAL;
-
+    showChangePalWindow(true);
     //testWriteSizes();
     while (1)
     {
@@ -236,7 +316,6 @@ int main(int argc, char **argv){
             case MAIN_MENU:
                 //state = EDITOR;
                 nocashMessage("main menu");
-                setGreyBg();
 
             break;
             case EDITOR:
@@ -328,6 +407,7 @@ int main(int argc, char **argv){
             case CHANGE_PAL:
             {
                 NF_WriteText(0,0,0,0,"Preview");
+                static bool gridHidden = false;
                 static int row = 0;
                 static int R = 9;
                 static int G = 19;
@@ -398,7 +478,11 @@ int main(int argc, char **argv){
 
                     if (ctx.input->touchPos.px >= 192 && ctx.input->touchPos.px <= 255 )
                     {
+
+                        showEditor(true);
+                        showChangePalWindow(false);
                         state = EDITOR;
+                        gridHidden = false;
 
                     }
                 }
@@ -406,7 +490,7 @@ int main(int argc, char **argv){
                 for (int i = 0; i < 16; i++)
                 {
                     NF_SpriteFrame(1,45 + i,getLetterFrame(&change[i]));
-                    NF_MoveSprite(1,45 + i,8 * i, 0);
+                    //NF_MoveSprite(1,45 + i,8 * i, 0);
                 }
 
 
@@ -473,25 +557,16 @@ int main(int argc, char **argv){
                 }
 
 
-                for (int i = 0; i < 4; i++)
-                {
-                    NF_ShowSprite(1, 18 + i, true);
-                    NF_ShowSprite(1, 18 + 4 + i, true);
-                    NF_ShowSprite(1, 18 + 8 + i, true);
-                    NF_MoveSprite(1, 18 + i, 96 + (16 * i), 48);
-                    NF_MoveSprite(1, 18 + i + 4, 96 + (16 * i), 80);
-                    NF_MoveSprite(1, 18 + i + 8, 96 + (16 * i), 112);
-                }
+
                 char space[2] = " ";
                 int frameSpace = getLetterFrame(&space[0]);
                 NF_SpriteFrame(1,19,frameSpace);
                 NF_SpriteFrame(1,23,frameSpace);
                 NF_SpriteFrame(1,27,frameSpace);
-                static bool gridHidden = false;
-                    if (!gridHidden)
+                    if (!gridHidden && state != EDITOR)
                     {
-                        NF_HideBg(1,2);
-                        setGreyBg();
+                        showEditor(false);
+                        showChangePalWindow(true);
                         gridHidden = true;
                     }
 
