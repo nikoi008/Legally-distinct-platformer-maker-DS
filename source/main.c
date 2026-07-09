@@ -113,6 +113,7 @@ void showChangePalWindow(bool show)
 }
 
 
+
 int clampInt(int val,int min, int max)
 {
     if (val < min) return min;
@@ -120,7 +121,23 @@ int clampInt(int val,int min, int max)
     return val;
 }
 
+void fadeOut(int screen, int frames) {
+    for (int b = 0; b >= -16; b--) {
+        setBrightness(screen, b);
+        for (int f = 0; f < frames; f++) {
+            swiWaitForVBlank();
+        }
+    }
+}
 
+void fadeIn(int screen, int frames) {
+    for (int b = -16; b <= 0; b++) {
+        setBrightness(screen, b);
+        for (int f = 0; f < frames; f++) {
+            swiWaitForVBlank();
+        }
+    }
+}
 int main(int argc, char **argv){
     editorContext editor = {};
     playerContext player = {};
@@ -299,8 +316,9 @@ int main(int argc, char **argv){
     showKeyboard(false);
 
     //showEditor(false);
-    state = CHANGE_PAL;
-    showChangePalWindow(true);
+    state = MAIN_MENU;
+    showChangePalWindow(false);
+
     //testWriteSizes();
     while (1)
     {
@@ -314,6 +332,14 @@ int main(int argc, char **argv){
 
         switch(state){
             case MAIN_MENU:
+            if (ctx.input->buttonsDown & KEY_A)
+            {
+                fadeIn(3,2);
+            }
+            if (ctx.input->buttonsDown & KEY_B)
+            {
+                fadeOut(3,2);
+            }
                 //state = EDITOR;
                 nocashMessage("main menu");
 
