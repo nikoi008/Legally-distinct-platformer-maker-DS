@@ -9,6 +9,8 @@
 #include "keyboard.h"
 #include <string.h>
 
+#include "player.h"
+
 void rectangleFillPreview(gameContext *ctx){ // causes huge lag when rectangles are large.. todo optimise??
     touchRead(&ctx->input->touchPos);                                                        // might just be emu lag??? desmume struggles but melonds is fine????? todo test on real ds
     ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
@@ -135,14 +137,6 @@ void editorFrame(gameContext *ctx)
 
         if(ctx->input->buttonsDown & KEY_A){
             state = PLAY_SCREEN;
-
-            //swap with seperate HUD <-- todo
-            NF_ShowSprite(1,1,false);
-            NF_ShowSprite(1,2,false);
-            NF_ShowSprite(1,3,false);
-            NF_ShowSprite(1,4,false);
-            NF_DeleteTiledBg(1,2);
-            lcdSwap();
         }
         //NF_CreateSprite(1,30,1,1,10,173);
         if (ctx->input->buttonsDown & KEY_TOUCH && touchedToggleButton)
