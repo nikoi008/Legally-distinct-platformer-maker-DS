@@ -482,6 +482,7 @@ int main(int argc, char **argv){
                         char dir[64] = "fat:/YouMakeLevels/";
                         strcat(dir,word);
                         saveLevel(dir);
+                        word[0] = '\0';
                     }
                     //todo add a cancel button
                 }

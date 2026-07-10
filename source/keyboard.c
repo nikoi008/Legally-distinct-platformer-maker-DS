@@ -2,7 +2,9 @@
 #include "types.h"
 #include "globals.h"
 #include <nf_lib.h>
+#include "player.h"
 
+#define SPRITE_HIDE_COORD 300 // only use if sprite has rotscale, otherwise use showsprite
 void showKeyboard(bool show)
 {
     if (show)
@@ -19,11 +21,11 @@ void showKeyboard(bool show)
     }
     else
     {
-        NF_MoveSprite(1,17,300,300);
-        NF_MoveSprite(1,16,300,300);
+        NF_MoveSprite(1,17,SPRITE_HIDE_COORD,SPRITE_HIDE_COORD);
+        NF_MoveSprite(1,16,SPRITE_HIDE_COORD,SPRITE_HIDE_COORD);
         for (int i = 0; i < 12; i++)
         {
-            NF_MoveSprite(1,i + 18,300,300);
+            NF_MoveSprite(1,i + 18,SPRITE_HIDE_COORD,SPRITE_HIDE_COORD);
 
         }
     }
@@ -32,6 +34,14 @@ void showKeyboard(bool show)
 }
 char keyboardPresses(gameContext *ctx)
 {
+    static const rectangle layer1Bounds = {40,80,204 - 40, 104 - 80};
+    static const rectangle layer2Bounds = {40,104, 204 - 40 ,126 - 104};
+    static const rectangle layer3Bounds = {48,128,198 - 48, 148 - 128};
+    static const rectangle layer4Bounds = {64,152,180 - 64, 170 - 152};
+    static const rectangle returnBounds1 = {203,80,218 - 203, 146 - 80};
+    static const rectangle returnBounds2 = {195,125,218 - 195,146 - 125};
+    static const rectangle backspaceBounds = {180,147,217 - 180,168 - 147};
+
     static const char layer1[10] = {'0','1','2','3','4','5','6','7','8','9'}; // rect bounds from x40 y80 to x204 y 104
     static const char layer2[10] = {'Q','W','E','R','T','Y','U','I','O','P'}; // x40 to y104 x204 y126
     static const char layer3[9] = {'A','S','D','F','G','H','J','K','L'}; //x48 y128 to x198 y148
@@ -39,83 +49,74 @@ char keyboardPresses(gameContext *ctx)
 
     char keyPressed[3];
 
-   // if (ctx->input-> buttonsUp & KEY_TOUCH)
-   // {
-        int  tX = ctx->input->touchPos.px;
-        int tY = ctx->input->touchPos.py;
+    int  tX = ctx->input->touchPos.px;
+    int tY = ctx->input->touchPos.py;
+    rectangle tRect = {tX,tY,1,1};
+    if (checkCollision(layer1Bounds,tRect))
+    {
+        nocashMessage("layer 1");
+        char key[2];
+        key[0] = layer1[(tX - 41) / 16];
+        //key[1] = '\0';
+        //nocashMessage(key);
+        return key[0];
 
-        if (tX > 40 && tX < 204 && tY > 80 && tY < 104)
-        {
-            nocashMessage("layer 1");
-            char key[2];
-            key[0] = layer1[(tX - 41) / 16];
-            //key[1] = '\0';
-            //nocashMessage(key);
-            return key[0];
+    }
 
-        }
+    else if (checkCollision(layer2Bounds,tRect))
+    {
+        nocashMessage("layer 2");
+        //Q 41 W 57,E 73
+        //algo is (tx - 41) / 16
+        char key[2];
+        key[0] = layer2[(tX - 41) / 16];
+        key[1] = '\0';
+        // nocashMessage(key);
+        return key[0];
 
-        else if (tX > 40 && tX < 204 && tY > 104 && tY < 126)
-        {
-            nocashMessage("layer 2");
-            //Q 41 W 57,E 73
-            //algo is (tx - 41) / 16
-            char key[2];
-            key[0] = layer2[(tX - 41) / 16];
-            key[1] = '\0';
-           // nocashMessage(key);
-            return key[0];
+    }
 
-        }
+    else if (checkCollision(layer3Bounds,tRect))
+    {
+        nocashMessage("layer 3");
+        //64,80
+        //algo is (tx - 64) / 16
+        //+ 16????????
+        // literally no clue why i have to add 16 but we ball
+        char key[2];
+        key[0] = layer3[(tX - 48) / 16];
+        //key[1] = '\0';
+        //nocashMessage(key);
+        return key[0];
+    }
 
-        else if (tX > 48 && tX < 198 && tY > 128 && tY < 148)
-        {
-            nocashMessage("layer 3");
-            //64,80
-            //algo is (tx - 64) / 16
-            //+ 16????????
-            // literally no clue why i have to add 16 but we ball
-            char key[2];
-            key[0] = layer3[(tX - 48) / 16];
-            //key[1] = '\0';
-            //nocashMessage(key);
-            return key[0];
-        }
+    else if (checkCollision(layer4Bounds,tRect))
+    {
+        //80,96
+        //algo is (tx - 80) /16 mysterious +16 offset strikes again
 
-        else if (tX > 64 && tX < 180  && tY > 152 && tY < 170)
-        {
-            //80,96
-            //algo is (tx - 80) /16 mysterious +16 offset strikes again
+        nocashMessage("layer 4");
+        char key[2];
+        key[0] = layer4[(tX - 64) / 16];
+        return key[0];
+    }
 
-            nocashMessage("layer 4");
-            char key[2];
-            key[0] = layer4[(tX - 64) / 16];
-            //key[1] = '\0';
-            //nocashMessage(key);
-            return key[0];
-        }
+    else if (tX > 37 && tX < 218 && tY > 168 && tY < 191)
+    {
+        //nocashMessage("space");
+        return ' ';
+    }
 
-        else if (tX > 37 && tX < 218 && tY > 168 && tY < 191)
-        {
-            //nocashMessage("space");
-            return ' ';
-        }
-
-        else if ((tX > 203 && tX < 218 && tY > 80 && tY < 146) || (tX > 195 && tX < 218 && tY > 125 && tY < 146))
-        {
-            //203 80 218 146
-            //195 125
-            //nocashMessage("return");
-            return '+';
-        }
-
-        else if (tX > 180 && tX < 217 && tY > 147 && tY < 168)
-        {
-            //180 147, 217 168
-            //nocashMessage("backspace");
-            return '-';
-        }
-    //}
+    else if (checkCollision(returnBounds1,tRect) || checkCollision(returnBounds2,tRect))
+    {
+        return '+';
+    }
+    else if (checkCollision(backspaceBounds,tRect))
+    {
+        //180 147, 217 168
+        //nocashMessage("backspace");
+        return '-';
+    }
     return '@';
 }
 
@@ -153,7 +154,7 @@ void displayTyped(char *string,int maxChars)
 char keyboardLoop(int maxChars, char *string,gameContext *ctx)
 {
 
-    static int letterPos = 0;
+    static int letterPos = -1;
     char letter[1];
 
     if (ctx->input->buttonsHeld & KEY_TOUCH)
