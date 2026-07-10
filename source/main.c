@@ -160,7 +160,7 @@ int main(int argc, char **argv){
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
 
 
-    NF_LoadTiledBg("bg/GRID","grid",512,256);
+    NF_LoadTiledBg("bg/GRID","grid",256,256);
     NF_CreateTiledBg(1,2,"grid");
     NF_LoadSpriteGfx("bg/animatedHUD", 0, 64,32);
     NF_LoadSpritePal("bg/animatedHUD", 0);//todo make dedicated sprite folder
@@ -430,17 +430,16 @@ int main(int argc, char **argv){
                 NF_ShowSprite(1,0,false); //COMMENT TO SEE hitbx
 
                 if(ctx.input->buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
-                    NF_ShowSprite(1,1,true);
-                    NF_ShowSprite(1,2,true);
-                    NF_ShowSprite(1,3,true);
-                    NF_ShowSprite(1,4,true);
+                    fadeOut(3,4);
                     NF_CreateTiledBg(1,2,"grid");
+                    showEditor(true);
                     lcdSwap();
-                    state = EDITOR;
                     ctx.coords->cameraX = ctx.editor->flagPosX - 64;//mysterious offset todo figure out
                     ctx.coords->cameraY = ctx.editor->flagPosY * 16 - 64;
                     ctx.coords->scrollX = 128;
                     ctx.coords->scrollY = 160;
+                    updateTiles(&ctx);
+                    updateOrigin(&ctx);
                     for (int i = 0; i < 10; i++)
                     {
                         NF_ShowSprite(1,i + 6,true);
@@ -448,7 +447,24 @@ int main(int argc, char **argv){
                     scrollLogic(&ctx);
                     updateTiles(&ctx);
                     updateOrigin(&ctx);
+                    state = EDITOR;
+                    debugText(&ctx);
+                    NF_ShowSprite(1,5,false);
+                    NF_ShowSprite(1,0,true);
+                    editorFrame(&ctx);
+                    NF_MoveSprite(1,0,(ctx.editor->currentBlock * 20) + 30,3);
+                    NF_SpriteOamSet(0);
+                    NF_SpriteOamSet(1);
+                    swiWaitForVBlank();
+                    NF_UpdateVramMap(1, 3);
+                    NF_ScrollBg(1, 3,coords.scrollX,coords.scrollY);
+                    NF_ScrollBg(1,2,coords.cameraX % 16,coords.cameraY % 16);
+                    NF_UpdateTextLayers();
+                    oamUpdate(&oamMain);
+                    oamUpdate(&oamSub);
+                    fadeIn(3,2);
                 }
+
                 break;
 
 
