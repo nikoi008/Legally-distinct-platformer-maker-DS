@@ -164,3 +164,95 @@ void editorFrame(gameContext *ctx)
 
     }
 }
+
+void showEditor(bool show)
+{
+    if (show) NF_ShowBg(1,2);
+    if (!show)NF_HideBg(1,2);
+    for (int i = 0; i <= 5; i++)
+    {
+        NF_ShowSprite(1,i,show); //highlight + HUD frames
+    }
+    for (int i = 6; i <= 15; i++)
+    {
+        NF_ShowSprite(1,i,show);
+    }
+    NF_ShowSprite(1,34,show);
+    NF_ShowSprite(1,35,show);
+    NF_ShowSprite(1,36,show);
+    NF_ShowSprite(1,38,show);
+    NF_ShowSprite(1,31,show);
+    NF_ShowSprite(1,32,show);
+    NF_ShowSprite(1,33,show);
+    NF_ShowSprite(1,37,show);
+}
+void setGreyBg(bool set)
+{
+    if (set)
+    {
+        for (int x = 0; x < 512 / 8; x++)
+        {
+            for (int y = 0; y < 512/ 8; y++)
+            {
+                NF_SetTileOfMap(1, TILE_LAYER, x,y,TRANSPARENT_BLOCK_OFFSET + TRANSPARENT_BLOCK_OFFSET); //changing bg registers easier?
+            }
+        }
+    }
+    else
+    {
+        for (int x = 0; x < 512 / 8; x++)
+        {
+            for (int y = 0; y < 512/ 8; y++)
+            {
+                NF_SetTileOfMap(1, TILE_LAYER, x,y,0); //changing bg registers easier?
+            }
+        }
+    }
+
+}
+void showChangePalWindow(bool show)
+{
+    if (show)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            NF_ShowSprite(1, 18 + i, true);
+            NF_ShowSprite(1, 18 + 4 + i, true);
+            NF_ShowSprite(1, 18 + 8 + i, true);
+            NF_MoveSprite(1, 18 + i, 96 + (16 * i), 48);
+            NF_MoveSprite(1, 18 + i + 4, 96 + (16 * i), 80);
+            NF_MoveSprite(1, 18 + i + 8, 96 + (16 * i), 112);
+
+        }
+        for (int i = 0; i < 16; i++)
+        {
+            NF_MoveSprite(1,45 +i,8 * i,0);
+        }
+
+
+    }
+    else
+    {
+        for (int i = 0; i < 12; i++)
+        {
+            NF_MoveSprite(1,i + 18,300,300);
+
+        }
+
+        for (int i = 0; i < 16; i++)
+        {
+            NF_MoveSprite(1,45 +i,300,300);
+        }
+    }
+    NF_ShowSprite(1,39,show);
+    NF_ShowSprite(1,40,show);
+    NF_ShowSprite(1,41,show);
+    NF_ShowSprite(1,42,show);
+    NF_ShowSprite(1,43,show);
+    NF_ShowSprite(1,44,show);
+
+    NF_ShowSprite(1,63,show);
+    NF_ShowSprite(1,64,show);
+    setGreyBg(show);
+
+}
