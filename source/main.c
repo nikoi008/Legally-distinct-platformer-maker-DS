@@ -209,17 +209,18 @@ int main(int argc, char **argv){
      NF_SpriteFrame(1,9,4);
      NF_SpriteFrame(1,10,5);
 
-     ctx.player->grounded = true;
-     ctx.editor->currentBlock = 1;
-     ctx.editor->rectFillOn = false;
-     ctx.editor->firstTouchX = -1;
-     ctx.editor->firstTouchY = -1;
+    ctx.player->grounded = true;
+    ctx.editor->currentBlock = 1;
+    ctx.editor->rectFillOn = false;
+    ctx.editor->firstTouchX = -1;
+    ctx.editor->firstTouchY = -1;
     ctx.editor->leftMostX = 1024;
     ctx.editor->leftMostY = 1024;
 
-     ctx.editor->flagPosX = -1;
+    ctx.editor->flagPosX = -1;
     ctx.editor->flagPosY = -1;
-     ctx.coords->cameraY =( GRID_Y * 16 )/2;
+    ctx.coords->cameraX =( GRID_X * 16 )/2;
+    ctx.coords->cameraY =( GRID_Y * 16 )/2;
 
     NF_LoadSpriteGfx("bg/key",4,64,64);
     NF_LoadSpritePal("bg/key",4);
@@ -429,7 +430,7 @@ int main(int argc, char **argv){
                 //NF_MoveSprite(1, 0, 128, 96); uncomment to see hitbox
                 NF_ShowSprite(1,0,false); //COMMENT TO SEE hitbx
 
-                if(ctx.input->buttonsDown & KEY_TOUCH){ // todo add some sort of bounds ie bottom left corner
+                if(ctx.input->buttonsDown & KEY_TOUCH || state == EDITOR){ // todo add some sort of bounds ie bottom left corner
                     fadeOut(3,4);
                     NF_CreateTiledBg(1,2,"grid");
                     showEditor(true);

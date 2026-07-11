@@ -9,23 +9,6 @@
 
 void backToEditor(gameContext *ctx){
 
-    NF_ShowSprite(1,1,true);
-    NF_ShowSprite(1,2,true);
-    NF_ShowSprite(1,3,true);
-    NF_ShowSprite(1,4,true);
-    NF_CreateTiledBg(1,2,"grid");
-    lcdSwap();
-    ctx->coords->cameraX = ctx->editor->flagPosX - 64;
-    ctx->coords->cameraY = ctx->editor->flagPosY * 16 - 64;
-    ctx->coords->scrollX = 128;
-    ctx->coords->scrollY = 160;
-    for (int i = 0; i < 10; i++)
-    {
-        NF_ShowSprite(1,i + 6,true);
-    }
-    scrollLogic(ctx);
-    updateTiles(ctx);
-    updateOrigin(ctx);
    state = EDITOR;
 }
 
