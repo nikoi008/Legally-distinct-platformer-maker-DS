@@ -9,7 +9,9 @@ typedef enum{
     PLAY_SCREEN,
     LEVEL_SAVE,
     LEVEL_LOAD,
-    CHANGE_PAL
+    CHANGE_PAL,
+    SHARE_LEVEL_HOST,
+    SHARE_LEVEL_CLIENT
 } gameStates;
 
 typedef enum{

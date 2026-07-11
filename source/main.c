@@ -20,97 +20,181 @@
 #include "init.h"
 #include "keyboard.h"
 #include "file_handling.h"
-void showEditor(bool show)
+#include <dswifi9.h>
+
+
+typedef struct __attribute__((packed))
 {
-    if (show) NF_ShowBg(1,2);
-    if (!show)NF_HideBg(1,2);
-    for (int i = 0; i <= 5; i++)
+    u8 worldChunk[512];
+    u16 chunkNumber;
+} hostPktToClient;
+
+typedef struct __attribute__((packed)) {
+    u16 chunkRecieved;
+} clientPktToHost;
+
+#define MAX_CLIENTS 1
+#define NUM_CHUNKS 512
+#define RETRY_TIMEOUT_FRAMES 60
+
+Wifi_AccessPoint AccessPoint;
+int chunkRecievedYay = -1;
+
+void SendHostStateToClients(int chunkNumber)
+{
+    hostPktToClient hostPacket;
+    hostPacket.chunkNumber = chunkNumber;
+
+    for (int i = 0; i < 512; i++)
     {
-        NF_ShowSprite(1,i,show); //highlight + HUD frames
+        hostPacket.worldChunk[i] = TILE_MAP[chunkNumber][i];
     }
-    for (int i = 6; i <= 15; i++)
-    {
-        NF_ShowSprite(1,i,show);
-    }
-    NF_ShowSprite(1,34,show);
-    NF_ShowSprite(1,35,show);
-    NF_ShowSprite(1,36,show);
-    NF_ShowSprite(1,38,show);
-    NF_ShowSprite(1,31,show);
-    NF_ShowSprite(1,32,show);
-    NF_ShowSprite(1,33,show);
-    NF_ShowSprite(1,37,show);
+
+    Wifi_MultiplayerHostCmdTxFrame(&hostPacket, sizeof(hostPacket));
 }
-void setGreyBg(bool set)
+
+void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len)
 {
-    if (set)
+    if (len < sizeof(hostPktToClient))
     {
-        for (int x = 0; x < 512 / 8; x++)
+        return;
+    }
+
+    if (type != WIFI_MPTYPE_CMD)
+        return;
+
+    hostPktToClient packet;
+    Wifi_RxRawReadPacket(base, sizeof(packet), (void *)&packet);
+
+    if (packet.chunkNumber >= NUM_CHUNKS)
+        return;
+
+    for (int i = 0; i < 512; i++)
+    {
+        TILE_MAP[packet.chunkNumber][i] = packet.worldChunk[i];
+    }
+    clientPktToHost packetC;
+    packetC.chunkRecieved = packet.chunkNumber;
+    Wifi_MultiplayerClientReplyTxFrame(&packetC, sizeof(packetC));
+}
+
+void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len)
+{
+    if (len < sizeof(clientPktToHost))
+    {
+        return;
+    }
+
+    if (type != WIFI_MPTYPE_REPLY)
+        return;
+
+    clientPktToHost packet;
+    Wifi_RxRawReadPacket(base, sizeof(packet), (void *)&packet);
+    chunkRecievedYay = packet.chunkRecieved;
+}
+
+void hostMode()
+{
+    Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(hostPktToClient), sizeof(clientPktToHost));
+    Wifi_MultiplayerFromClientSetPacketHandler(FromClientPacketHandler);
+
+    while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
+    Wifi_SetChannel(6);
+    Wifi_MultiplayerAllowNewClients(true);
+
+    Wifi_BeaconStart("NintendoDS", 0xCAFEF00D);
+    swiWaitForVBlank();
+    swiWaitForVBlank();
+
+    while (1)
+    {
+
+        scanKeys();
+        u16 keys_down = keysDown();
+        swiWaitForVBlank();
+
+        int num_clients = Wifi_MultiplayerGetNumClients();
+        u16 players_mask = Wifi_MultiplayerGetClientMask();
+        Wifi_ConnectedClient client[MAX_CLIENTS];
+        num_clients = Wifi_MultiplayerGetClients(MAX_CLIENTS, &(client[0]));
+
+
+        if ((keys_down & KEY_A) && num_clients > 0)
+            break;
+    }
+    Wifi_MultiplayerAllowNewClients(false);
+
+    while (1)
+    {
+        for (int chunk = 0; chunk < NUM_CHUNKS; chunk++)
         {
-            for (int y = 0; y < 512/ 8; y++)
+            chunkRecievedYay = -1;
+
+
+            int framesWaited = 0;
+            SendHostStateToClients(chunk);
+
+            while (chunkRecievedYay != chunk)
             {
-                NF_SetTileOfMap(1, TILE_LAYER, x,y,TRANSPARENT_BLOCK_OFFSET + TRANSPARENT_BLOCK_OFFSET); //changing bg registers easier?
+                swiWaitForVBlank();
+                framesWaited++;
+
+                if (framesWaited >= RETRY_TIMEOUT_FRAMES)
+                {
+
+                    if (Wifi_MultiplayerGetClientMask() == 0)
+                        goto client_lost;
+
+                    SendHostStateToClients(chunk);
+                    framesWaited = 0;
+                }
             }
         }
     }
-    else
-    {
-        for (int x = 0; x < 512 / 8; x++)
-        {
-            for (int y = 0; y < 512/ 8; y++)
-            {
-                NF_SetTileOfMap(1, TILE_LAYER, x,y,0); //changing bg registers easier?
-            }
-        }
-    }
 
+client_lost:
+    return;
 }
-void showChangePalWindow(bool show)
+
+bool AccessPointSelectionMenu()
 {
-    if (show)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            NF_ShowSprite(1, 18 + i, true);
-            NF_ShowSprite(1, 18 + 4 + i, true);
-            NF_ShowSprite(1, 18 + 8 + i, true);
-            NF_MoveSprite(1, 18 + i, 96 + (16 * i), 48);
-            NF_MoveSprite(1, 18 + i + 4, 96 + (16 * i), 80);
-            NF_MoveSprite(1, 18 + i + 8, 96 + (16 * i), 112);
 
-        }
-        for (int i = 0; i < 16; i++)
-        {
-            NF_MoveSprite(1,45 +i,8 * i,0);
-        }
+    Wifi_ScanMode();
+    int numAPs = Wifi_GetNumAP();
 
+    if (numAPs <= 0)
+        return false;
 
-    }
-    else
-    {
-        for (int i = 0; i < 12; i++)
-        {
-            NF_MoveSprite(1,i + 18,300,300);
-
-        }
-
-        for (int i = 0; i < 16; i++)
-        {
-            NF_MoveSprite(1,45 +i,300,300);
-        }
-    }
-    NF_ShowSprite(1,39,show);
-    NF_ShowSprite(1,40,show);
-    NF_ShowSprite(1,41,show);
-    NF_ShowSprite(1,42,show);
-    NF_ShowSprite(1,43,show);
-    NF_ShowSprite(1,44,show);
-
-    NF_ShowSprite(1,63,show);
-    NF_ShowSprite(1,64,show);
-    setGreyBg(show);
-
+    Wifi_AccessPoint ap;
+    Wifi_GetAPData(0, &ap);
+    AccessPoint = ap;
+    return true;
 }
+
+void ClientMode()
+{
+    connect:
+    if (!AccessPointSelectionMenu())
+        goto end;
+
+    Wifi_MultiplayerFromHostSetPacketHandler(FromHostPacketHandler);
+    Wifi_ConnectOpenAP(&AccessPoint);
+
+    while (1)
+    {
+        swiWaitForVBlank();
+        int status = Wifi_AssocStatus();
+        if (status == ASSOCSTATUS_ASSOCIATED)
+            break;
+    }
+    end:
+    Wifi_IdleMode();
+}
+
+
+
+
+
 
 
 
@@ -169,7 +253,7 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1, 0, 0, false);
     NF_VramSpritePal(1, 0, 0);
 
-  
+
 
     NF_CreateSprite(1, 1, 0, 0, 0, 0);
     NF_SpriteFrame(1, 1, 0);
@@ -191,7 +275,7 @@ int main(int argc, char **argv){
     NF_VramSpritePal(1,2,2);
     NF_CreateSprite(1,5,2,2,100,50);
     initBlocks(&ctx);
-    
+
 
     NF_LoadSpriteGfx("bg/tileSprites",3,16,16);
     NF_LoadSpritePal("bg/tileSprites",3);
@@ -664,7 +748,12 @@ int main(int argc, char **argv){
                 break;
             }
 
+        case SHARE_LEVEL_HOST:
+            hostMode();
+            break;
 
+        case SHARE_LEVEL_CLIENT:
+                break;
         }
         NF_SpriteOamSet(0);
         NF_SpriteOamSet(1);
