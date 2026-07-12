@@ -25,62 +25,31 @@
 
 typedef struct __attribute__((packed))
 {
-    u8 worldChunk[512];
-    u16 chunkNumber;
-} hostPktToClient;
-
-typedef struct __attribute__((packed)) {
-    u16 chunkRecieved;
-} clientPktToHost;
+    u16 x;
+    u16 y;
+    u8 blockID;
+} tilePacket;
 
 #define MAX_CLIENTS 1
-#define NUM_CHUNKS 512
-#define RETRY_TIMEOUT_FRAMES 60
+#define AIR 0
+#define END 9999
 
 Wifi_AccessPoint AccessPoint;
-int chunkRecievedYay = -1;
+int ackX = -1;
+int ackY = -1;
+volatile int pendingAckX = -1;
+volatile int pendingAckY = -1;
+bool levelDone = false;
 
-void SendHostStateToClients(int chunkNumber)
+void SendTile(u16 x, u16 y, u8 blockID)
 {
-    hostPktToClient hostPacket;
-    hostPacket.chunkNumber = chunkNumber;
-
-    for (int i = 0; i < 512; i++)
-    {
-        hostPacket.worldChunk[i] = TILE_MAP[chunkNumber][i];
-    }
-
-    Wifi_MultiplayerHostCmdTxFrame(&hostPacket, sizeof(hostPacket));
-}
-
-void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len)
-{
-    if (len < sizeof(hostPktToClient))
-    {
-        return;
-    }
-
-    if (type != WIFI_MPTYPE_CMD)
-        return;
-
-    hostPktToClient packet;
-    Wifi_RxRawReadPacket(base, sizeof(packet), (void *)&packet);
-
-    if (packet.chunkNumber >= NUM_CHUNKS)
-        return;
-
-    for (int i = 0; i < 512; i++)
-    {
-        TILE_MAP[packet.chunkNumber][i] = packet.worldChunk[i];
-    }
-    clientPktToHost packetC;
-    packetC.chunkRecieved = packet.chunkNumber;
-    Wifi_MultiplayerClientReplyTxFrame(&packetC, sizeof(packetC));
+    tilePacket pkt = { x, y, blockID };
+    Wifi_MultiplayerHostCmdTxFrame(&pkt, sizeof(pkt));
 }
 
 void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len)
 {
-    if (len < sizeof(clientPktToHost))
+    if (len < sizeof(tilePacket))
     {
         return;
     }
@@ -88,14 +57,43 @@ void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len)
     if (type != WIFI_MPTYPE_REPLY)
         return;
 
-    clientPktToHost packet;
-    Wifi_RxRawReadPacket(base, sizeof(packet), (void *)&packet);
-    chunkRecievedYay = packet.chunkRecieved;
+    tilePacket pkt;
+    Wifi_RxRawReadPacket(base, sizeof(pkt), (void *)&pkt);
+    ackX = pkt.x;
+    ackY = pkt.y;
+}
+
+void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len)
+{
+    if (len < sizeof(tilePacket))
+    {
+        return;
+    }
+    if (type != WIFI_MPTYPE_CMD)
+        return;
+
+    tilePacket pkt;
+    Wifi_RxRawReadPacket(base,sizeof(pkt),(void *)&pkt);
+
+    if (pkt.x != END)
+    {
+        TILE_MAP[pkt.y][pkt.x] = pkt.blockID;
+    }
+
+    pendingAckX = pkt.x;
+    pendingAckY = pkt.y;
 }
 
 void hostMode()
 {
-    Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(hostPktToClient), sizeof(clientPktToHost));
+    char debugBuf[64];
+
+    NF_ClearTextLayer(0, 0);
+    NF_WriteText(0, 0, 1, 0, "starting");
+    NF_UpdateTextLayers();
+
+
+    Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(tilePacket), sizeof(tilePacket));
     Wifi_MultiplayerFromClientSetPacketHandler(FromClientPacketHandler);
 
     while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
@@ -113,10 +111,19 @@ void hostMode()
         u16 keys_down = keysDown();
         swiWaitForVBlank();
 
-        int num_clients = Wifi_MultiplayerGetNumClients();
-        u16 players_mask = Wifi_MultiplayerGetClientMask();
         Wifi_ConnectedClient client[MAX_CLIENTS];
-        num_clients = Wifi_MultiplayerGetClients(MAX_CLIENTS, &(client[0]));
+        int num_clients = Wifi_MultiplayerGetClients(MAX_CLIENTS, &(client[0]));
+
+        if (num_clients > 0)
+        {
+            snprintf(debugBuf, sizeof(debugBuf), "%d client A", num_clients);
+        }
+        else
+        {
+            snprintf(debugBuf, sizeof(debugBuf), "waiting for client");
+        }
+        NF_WriteText(0, 0, 1, 4, debugBuf);
+        NF_UpdateTextLayers();
 
 
         if ((keys_down & KEY_A) && num_clients > 0)
@@ -124,43 +131,92 @@ void hostMode()
     }
     Wifi_MultiplayerAllowNewClients(false);
 
-    while (1)
+    NF_WriteText(0, 0, 1, 3, "seding tiles");
+    NF_UpdateTextLayers();
+
+    int sent = 0;
+
+    for (int y = 0; y < GRID_Y; y++)
     {
-        for (int chunk = 0; chunk < NUM_CHUNKS; chunk++)
+        for (int x = 0; x < GRID_X; x++)
         {
-            chunkRecievedYay = -1;
+            if (TILE_MAP[y][x] == AIR)
+                continue;
 
+            ackX = -1;
+            ackY = -1;
 
-            int framesWaited = 0;
-            SendHostStateToClients(chunk);
-
-            while (chunkRecievedYay != chunk)
+            while (!(ackX == x && ackY == y))
             {
                 swiWaitForVBlank();
-                framesWaited++;
+                SendTile(x, y, TILE_MAP[y][x]);
 
-                if (framesWaited >= RETRY_TIMEOUT_FRAMES)
+                if (Wifi_MultiplayerGetClientMask() == 0)
                 {
-
-                    if (Wifi_MultiplayerGetClientMask() == 0)
-                        goto client_lost;
-
-                    SendHostStateToClients(chunk);
-                    framesWaited = 0;
+                    snprintf(debugBuf, sizeof(debugBuf), "client lost %d,%d", x, y);
+                    NF_WriteText(0, 0, 1, 6, debugBuf);
+                    NF_UpdateTextLayers();
+                    goto client_lost;
                 }
+            }
+
+            sent++;
+
+            if (sent % 20 == 0)
+            {
+                snprintf(debugBuf, sizeof(debugBuf), "%d tiles", sent);
+                NF_WriteText(0, 0, 1, 6, debugBuf);
+                NF_UpdateTextLayers();
             }
         }
     }
 
+    NF_UpdateTextLayers();
+
+    ackX = -1;
+
+    while (ackX != END)
+    {
+        swiWaitForVBlank();
+        SendTile(END, 0, 0);
+
+        if (Wifi_MultiplayerGetClientMask() == 0)
+            break;
+    }
+
+    snprintf(debugBuf, sizeof(debugBuf), "%d tiles sent", sent);
+    NF_WriteText(0, 0, 1, 6, debugBuf);
+    NF_UpdateTextLayers();
+
 client_lost:
-    return;
+    Wifi_DisconnectAP();
+    Wifi_IdleMode();
+    state = EDITOR;
 }
 
 bool AccessPointSelectionMenu()
 {
+    char debugBuf[64];
+
+    NF_UpdateTextLayers();
+
+    Wifi_MultiplayerClientMode(sizeof(tilePacket));
+
+    while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
+
+    NF_WriteText(0, 0, 1, 0, "scanning");
+    NF_UpdateTextLayers();
 
     Wifi_ScanMode();
+
+    for (int i = 0; i < 60; i++)
+        swiWaitForVBlank();
+
     int numAPs = Wifi_GetNumAP();
+
+    snprintf(debugBuf, sizeof(debugBuf), "%d APs", numAPs);
+    NF_WriteText(0, 0, 1, 1, debugBuf);
+    NF_UpdateTextLayers();
 
     if (numAPs <= 0)
         return false;
@@ -168,27 +224,106 @@ bool AccessPointSelectionMenu()
     Wifi_AccessPoint ap;
     Wifi_GetAPData(0, &ap);
     AccessPoint = ap;
+
+    snprintf(debugBuf, sizeof(debugBuf), "'%s'", ap.ssid);
+    NF_WriteText(0, 0, 1, 2, debugBuf);
+    NF_UpdateTextLayers();
+
     return true;
 }
 
 void ClientMode()
 {
-    connect:
+    char debugBuf[64];
+
+    NF_ClearTextLayer(0, 0);
+    levelDone = false;
+    pendingAckX = -1;
+    pendingAckY = -1;
+
+    for (int y = 0; y < GRID_Y; y++)
+    {
+        for (int x = 0; x < GRID_X; x++)
+        {
+            TILE_MAP[y][x] = AIR;
+        }
+    }
+
     if (!AccessPointSelectionMenu())
-        goto end;
+    {
+        NF_WriteText(0, 0, 1, 3,  "no ap found");
+        NF_UpdateTextLayers();
+        state =EDITOR;
+        return;
+    }
 
     Wifi_MultiplayerFromHostSetPacketHandler(FromHostPacketHandler);
+    NF_WriteText(0, 0, 1, 3,  "connecting");
+    NF_UpdateTextLayers();
+
     Wifi_ConnectOpenAP(&AccessPoint);
 
     while (1)
     {
         swiWaitForVBlank();
         int status = Wifi_AssocStatus();
+
         if (status == ASSOCSTATUS_ASSOCIATED)
             break;
+
+        if (status == ASSOCSTATUS_CANNOTCONNECT)
+        {
+            NF_WriteText(0, 0, 1, 4, "cannot connect");
+            NF_UpdateTextLayers();
+            state = EDITOR;
+            return;
+        }
     }
-    end:
+
+    NF_WriteText(0, 0, 1, 4, "associated");
+    NF_UpdateTextLayers();
+
+
+    int received = 0;
+
+    while (!levelDone)
+    {
+        swiWaitForVBlank();
+
+        if (pendingAckX != -1|| pendingAckY != -1)
+        {
+            tilePacket ack = {(u16)pendingAckX,(u16)pendingAckY,0};
+            Wifi_MultiplayerClientReplyTxFrame(&ack, sizeof(ack));
+
+            if (pendingAckX == END)
+            {
+                levelDone = true;
+            }
+            else
+            {
+                received++;
+
+                if (received % 20 == 0)
+                {
+                    snprintf(debugBuf, sizeof(debugBuf), "got %d tiles", received);
+                    NF_WriteText(0, 0, 1, 7, debugBuf);
+                    NF_UpdateTextLayers();
+                }
+            }
+
+            pendingAckX = -1;
+            pendingAckY = -1;
+        }
+    }
+
+    snprintf(debugBuf, sizeof(debugBuf), "done%d tiles", received);
+    NF_WriteText(0, 0, 1, 6, debugBuf);
+    NF_UpdateTextLayers();
+
+
+    Wifi_DisconnectAP();
     Wifi_IdleMode();
+    state = EDITOR;
 }
 
 
@@ -405,16 +540,28 @@ int main(int argc, char **argv){
     showChangePalWindow(false);
 
     //testWriteSizes();
+    Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
+
     while (1)
     {
 
-        NF_ClearTextLayer(0, 0);
+        if (state != SHARE_LEVEL_CLIENT && state != SHARE_LEVEL_HOST)
+        {
+            NF_ClearTextLayer(0, 0);
+        }
         scanKeys();
          ctx.input->buttonsDown = keysDown();
          ctx.input->buttonsHeld = keysHeld();
          ctx.input->buttonsUp = keysUp();
 
-
+        if (ctx.input->buttonsDown & KEY_Y)
+        {
+            state = SHARE_LEVEL_CLIENT;
+        }
+        if (ctx.input->buttonsDown & KEY_X)
+        {
+            state = SHARE_LEVEL_HOST;
+        }
         switch(state){
             case MAIN_MENU:
             if (ctx.input->buttonsDown & KEY_A)
@@ -750,10 +897,19 @@ int main(int argc, char **argv){
 
         case SHARE_LEVEL_HOST:
             hostMode();
+            if (state == EDITOR)
+            {
+                updateTiles(&ctx);
+            }
             break;
 
         case SHARE_LEVEL_CLIENT:
-                break;
+            ClientMode();
+            if (state == EDITOR)
+            {
+                updateTiles(&ctx);
+            }
+            break;
         }
         NF_SpriteOamSet(0);
         NF_SpriteOamSet(1);
