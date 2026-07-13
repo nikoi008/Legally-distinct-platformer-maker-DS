@@ -89,7 +89,7 @@ void editorFrame(gameContext *ctx)
     static const rectangle backToMainBounds = {10,173,16,16};
     static const rectangle saveLevelBtnBounds = {50,173,16,16};
     static const rectangle changePalBtnBounds = {70,173,16,16};
-    
+    static const rectangle playBtnBounds = {214,173,32,16};
 
     if (!ctx->input->keyboardOn){
         editorInputKeys(ctx);
@@ -141,10 +141,7 @@ void editorFrame(gameContext *ctx)
         else if(ctx->editor->rectFillOn && (ctx->editor->firstTouchX > 0 || ctx->editor->firstTouchY > 0) && ctx->input->buttonsUp & KEY_TOUCH && !touchedToggleButton){
             fill(ctx);
         }
-
-        if(ctx->input->buttonsDown & KEY_A){
-            state = PLAY_SCREEN;
-        }
+        
         //NF_CreateSprite(1,30,1,1,10,173);
         if (ctx->input->buttonsDown & KEY_TOUCH && touchedToggleButton)
         {
@@ -166,6 +163,11 @@ void editorFrame(gameContext *ctx)
         if (ctx->input->buttonsDown & KEY_TOUCH && checkCollision(changePalBtnBounds,touchPosRect))
         {
             state = CHANGE_PAL;
+        }
+
+        if (ctx->input->buttonsDown & KEY_TOUCH && checkCollision(playBtnBounds,touchPosRect))
+        {
+            state = PLAY_SCREEN;
         }
 
 
