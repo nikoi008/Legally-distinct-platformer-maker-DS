@@ -84,6 +84,13 @@ void editorInputKeys(gameContext *ctx){
 
 void editorFrame(gameContext *ctx)
 {
+
+    static const rectangle rectFillBounds = {30,173,16,16};
+    static const rectangle backToMainBounds = {10,173,16,16};
+    static const rectangle saveLevelBtnBounds = {50,173,16,16};
+    static const rectangle changePalBtnBounds = {70,173,16,16};
+    
+
     if (!ctx->input->keyboardOn){
         editorInputKeys(ctx);
 
@@ -93,8 +100,8 @@ void editorFrame(gameContext *ctx)
             ctx->input->touchTileX = coordsToTile(ctx->input->touchPos.px + ctx->coords->cameraX );
             ctx->input->touchTileY = coordsToTile (ctx->input->touchPos.py + ctx->coords->cameraY );
         }
-
-        bool touchedToggleButton = touchActive && (ctx->input->touchPos.px >= 10 && ctx->input->touchPos.px <= 26 && ctx->input->touchPos.py >= 173);
+        rectangle touchPosRect = {ctx->input->touchPos.px,ctx->input->touchPos.py,1,1};
+        bool touchedToggleButton = touchActive && checkCollision(rectFillBounds,touchPosRect);
 
         if(ctx->input->buttonsHeld & KEY_TOUCH && !ctx->editor->rectFillOn && !touchedToggleButton){
             if(ctx->input->touchPos.py >= HUD_Y_START && ctx->input->touchPos.py <= 192 - 22){//hud width
@@ -146,17 +153,17 @@ void editorFrame(gameContext *ctx)
             ctx->editor->firstTouchY = -1;
         }
         NF_ShowSprite(1,30,ctx->editor->rectFillOn);
-        if (ctx->input->buttonsDown & KEY_SELECT || (ctx->input->buttonsDown & KEY_TOUCH && (ctx->input->touchPos.px >= 50 && ctx->input->touchPos.px <= 65 && ctx->input->touchPos.py >= 173 )))
+        if (ctx->input->buttonsDown & KEY_TOUCH && checkCollision(touchPosRect,saveLevelBtnBounds))
         {
             ctx->input->keyboardOn = true;
             showKeyboard(true);
             state = LEVEL_SAVE;
         }
-        if ((ctx->input->buttonsDown & KEY_TOUCH && (ctx->input->touchPos.px >= 30 && ctx->input->touchPos.px <= 45 && ctx->input->touchPos.py >= 173 )))
+        if (ctx->input->buttonsDown & KEY_TOUCH && checkCollision(backToMainBounds,touchPosRect))
         {
             state = MAIN_MENU;
         }
-        if ((ctx->input->buttonsDown & KEY_TOUCH && (ctx->input->touchPos.px >= 70 && ctx->input->touchPos.px <= 85 && ctx->input->touchPos.py >= 173 )))
+        if (ctx->input->buttonsDown & KEY_TOUCH && checkCollision(changePalBtnBounds,touchPosRect))
         {
             state = CHANGE_PAL;
         }
