@@ -13,10 +13,6 @@ void updateLeftmostTile(gameContext *ctx);
 
 void editorFrame(gameContext *ctx);
 
-void setGreyBg(bool set);
-
-void showChangePalWindow(bool show);
-
 void showEditor(bool show);
 
 #endif
