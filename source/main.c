@@ -129,7 +129,7 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,5,5,false);
     NF_VramSpritePal(1,5,5);
 
-    NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
+    /*NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
     NF_LoadSpritePal("bg/uiAssets",6);
     NF_VramSpriteGfx(1,6,6,false);
     NF_VramSpritePal(1,6,6);
@@ -141,7 +141,7 @@ int main(int argc, char **argv){
 
     NF_SpriteFrame(1,31,1);
     NF_SpriteFrame(1,32,2);
-    NF_SpriteFrame(1,33,3);
+    NF_SpriteFrame(1,33,3);*/
 
 
 
