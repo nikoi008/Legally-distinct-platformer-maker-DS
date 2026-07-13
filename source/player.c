@@ -15,14 +15,19 @@ bool checkCollision(rectangle rectA, rectangle rectB){
 }
 
 void playerAnim(gameContext *ctx){
+    static int tick;
     if(ctx->player->currentState == IDLE){
-        NF_SpriteFrame(1,5,0);
-    }else{
-        ctx->player->frame++;
-        ctx->player->frame = ctx->player->frame;
-        NF_SpriteFrame(1,5,ctx->player->frame % 10);
-    }
+        NF_SpriteFrame(1,5,0); 
+        tick = 0;
+    } else {
+        tick++;
+        if(tick >= 45){
+            tick = 0;
+        }
 
+        ctx->player->frame = (tick * 10) / 45;
+        NF_SpriteFrame(1,5,ctx->player->frame);
+    }
 }
 
 void xCollision(gameContext *ctx,bool leftDirection){
