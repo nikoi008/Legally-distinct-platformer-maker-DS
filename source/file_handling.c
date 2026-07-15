@@ -7,73 +7,56 @@
 #include <nf_lib.h>
 #include "tilemap.h"
 #include <dirent.h>
+#include "change_palette.h"
 
 void showDirs(gameContext *ctx)
 {
     static char levels[512][16];
     static int maxEntries = 0;
     static bool alreadyRead = false;
-    static int position = 0;
-    static int frame = 0;
 
     if (!alreadyRead)
     {
+        maxEntries = 0;
         DIR *dr = opendir("fat:/YouMakeLevels/");
         struct dirent *de;
         while (dr != NULL && (de = readdir(dr)) != NULL)
         {
-            strncpy(levels[maxEntries], de->d_name, 15);
-            levels[maxEntries][15] = '\0';
-            maxEntries++;
+            if (strchr(de->d_name, '.') == NULL)
+            {
+                if (maxEntries >= 512) break; 
+                strncpy(levels[maxEntries], de->d_name, 15);
+                levels[maxEntries][15] = '\0';
+                maxEntries++;
+            }
         }
         if (dr != NULL) closedir(dr);
         alreadyRead = true;
     }
 
-    frame = (frame + 1) % 60;
+    static int touchPosition = 0;
+    static int position = 0;
 
-    if (ctx->input->buttonsUp & KEY_UP)
+    if (ctx->input->buttonsUp & KEY_DOWN) position++;
+    if (ctx->input->buttonsUp & KEY_UP) position--;
+    if (ctx->input->buttonsUp & KEY_TOUCH) touchPosition = 0;
+
+    int maxPos = (maxEntries > 12) ? (maxEntries - 12) : 0;
+    position = clampInt(position, 0, maxPos);
+
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "pos %d", position);
+    NF_WriteText(0, 0, 24, 0, buffer);
+
+    for (int i = 0; i < 12; i++)
     {
-        position--;
-        if (position < 0) position = 0;
-    }
-    if (ctx->input->buttonsUp & KEY_DOWN)
-    {
-        position++;
-        if (position >= maxEntries) position = maxEntries - 1;
+        int idx = i + position;
+        if (idx >= maxEntries) break; 
+        NF_WriteText(0, 0, 1, 2 + (i * 2), levels[idx]);
     }
 
-    int textRowCounter = 0;
-    for (int i = 0; i < maxEntries; i++)
-    {
-        if (strchr(levels[i], '.') != NULL) continue;
-        if (i < position) continue;
-
-        bool isSelected = (i == position);
-        bool blinkOn = (frame <= 30);
-
-        if (!isSelected || blinkOn)
-        {
-            NF_WriteText(0, 0, 1, (textRowCounter % 32) + 1, levels[i]);
-        }
-
-        if (isSelected)
-        {
-            NF_WriteText(0, 0, 1, 0, levels[i]);
-
-            if (ctx->input->buttonsUp & KEY_A)
-            {
-                state = EDITOR;
-                char dir[64] = "fat:/YouMakeLevels/";
-                strcat(dir, levels[i]);
-                loadLevel(dir, ctx);
-            }
-        }
-
-        textRowCounter += 2;
-    }
+    NF_WriteText(0, 0, 24, clampInt(touchPosition * 2, 2, 20), "selected");
 }
-
 void testWriteSizes()
 {
     FILE *f;
