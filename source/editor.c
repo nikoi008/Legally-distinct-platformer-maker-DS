@@ -190,9 +190,9 @@ void showEditor(bool show)
     NF_ShowSprite(1,35,show);
     NF_ShowSprite(1,36,show);
     NF_ShowSprite(1,38,show);
-    NF_ShowSprite(1,31,show);
+ //   NF_ShowSprite(1,31,show);
     NF_ShowSprite(1,32,show);
     NF_ShowSprite(1,33,show);
-    NF_ShowSprite(1,37,show);
+   // NF_ShowSprite(1,37,show);
 }
 

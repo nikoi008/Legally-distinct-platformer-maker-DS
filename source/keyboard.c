@@ -12,7 +12,7 @@ void showKeyboard(bool show)
         //
         for (int i = 0; i < 12; i++)
         {
-            NF_MoveSprite(1,i + 18,18 * i,45);
+            NF_MoveSprite(1,i + 18,(18 * i) + 23,45);
 
         }
         NF_MoveSprite(1,17,128 + 37,80);
@@ -41,6 +41,7 @@ char keyboardPresses(gameContext *ctx)
     static const rectangle returnBounds1 = {203,80,218 - 203, 146 - 80};
     static const rectangle returnBounds2 = {195,125,218 - 195,146 - 125};
     static const rectangle backspaceBounds = {180,147,217 - 180,168 - 147};
+
 
     static const char layer1[10] = {'0','1','2','3','4','5','6','7','8','9'}; // rect bounds from x40 y80 to x204 y 104
     static const char layer2[10] = {'Q','W','E','R','T','Y','U','I','O','P'}; // x40 to y104 x204 y126
@@ -89,7 +90,6 @@ char keyboardPresses(gameContext *ctx)
         //nocashMessage(key);
         return key[0];
     }
-
     else if (checkCollision(layer4Bounds,tRect))
     {
         //80,96
@@ -153,7 +153,8 @@ void displayTyped(char *string,int maxChars)
 }
 char keyboardLoop(int maxChars, char *string,gameContext *ctx)
 {
-
+    static const rectangle cancelBtn = {0,192 - 16,16,16};
+    rectangle tRect = {ctx->input->touchPos.px,ctx->input->touchPos.py,1,1};
     static int letterPos = -1;
     char letter[1];
 
@@ -189,6 +190,11 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx)
                 string[letterPos] = letter[0];
                 letterPos++;
             }
+        }
+
+        if (checkCollision(tRect,cancelBtn))
+        {
+            return '*';
         }
     }
     nocashMessage(string);

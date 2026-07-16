@@ -129,19 +129,20 @@ int main(int argc, char **argv){
     NF_VramSpriteGfx(1,5,5,false);
     NF_VramSpritePal(1,5,5);
 
-    /*NF_LoadSpriteGfx("bg/uiAssets",6,16,16);
-    NF_LoadSpritePal("bg/uiAssets",6);
+    NF_LoadSpriteGfx("bg/return",6,16,16);
+    NF_LoadSpritePal("bg/return",6);
     NF_VramSpriteGfx(1,6,6,false);
     NF_VramSpritePal(1,6,6);
 
-    NF_CreateSprite(1,37,6,6,10,173);
-    NF_CreateSprite(1,31,6,6,30,173);
-    NF_CreateSprite(1,32,6,6,50,173);
-    NF_CreateSprite(1,33,6,6,70,173);
+    NF_CreateSprite(1,31,6,6,0,192 - 16);
+    NF_ShowSprite(1,31,false);
+//    NF_CreateSprite(1,31,6,6,30,173);
+//    NF_CreateSprite(1,32,6,6,50,173);
+//    NF_CreateSprite(1,33,6,6,70,173);
 
-    NF_SpriteFrame(1,31,1);
-    NF_SpriteFrame(1,32,2);
-    NF_SpriteFrame(1,33,3);*/
+//    NF_SpriteFrame(1,31,1);
+//    NF_SpriteFrame(1,32,2);
+//    NF_SpriteFrame(1,33,3);
 
 
 
@@ -185,7 +186,7 @@ int main(int argc, char **argv){
 
     for (int i = 0; i < 12; i++)
     {
-        NF_CreateSprite(1,18 +i,5,5,18 * i,45);
+        NF_CreateSprite(1,18 +i,5,5,(18 * i) + 23,45);
         NF_SpriteFrame(1,i + 18,i);
 
         NF_EnableSpriteRotScale(1, 18 + i, i + 1, true);
@@ -283,20 +284,39 @@ int main(int argc, char **argv){
 
 
             case LEVEL_SAVE:
+            showEditor(false);
+            setGreyBg(true);
+            NF_ShowSprite(1,31,true);
                 static char word[12] = "";
                 static bool returned = false;
                 if (returned == false)
                 {
-                    if (keyboardLoop(12, word,&ctx) == '+')
+                    char returnedChar = keyboardLoop(12, word,&ctx);
+                    if ( returnedChar == '+')
                     {
 
                         returned = true;
                         showKeyboard(false);
+                        NF_ShowSprite(1,31,false);
+                        showEditor(true);
+                        setGreyBg(false);
                         ctx.input->keyboardOn = false;
                         char dir[64] = "fat:/YouMakeLevels/";
                         strcat(dir,word);
                         saveLevel(dir);
                         word[0] = '\0';
+                        state = EDITOR;
+                    }
+                    else if (returnedChar == '*')
+                    {
+                        returned = true;
+                        showKeyboard(false);
+                        NF_ShowSprite(1,31,false);
+                        showEditor(true);
+                        setGreyBg(false);
+                        ctx.input->keyboardOn = false;
+                        word[0] = '\0';
+                        state = EDITOR;
                     }
                     //todo add a cancel button
                 }
