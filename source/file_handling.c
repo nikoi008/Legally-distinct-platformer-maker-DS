@@ -36,13 +36,36 @@ void showDirs(gameContext *ctx)
 
     static int touchPosition = 0;
     static int position = 0;
+    static char selectedLevel[16] = "";
 
     if (ctx->input->buttonsUp & KEY_DOWN) position++;
     if (ctx->input->buttonsUp & KEY_UP) position--;
-    if (ctx->input->buttonsUp & KEY_TOUCH) touchPosition = 0;
 
     int maxPos = (maxEntries > 12) ? (maxEntries - 12) : 0;
     position = clampInt(position, 0, maxPos);
+
+    int visibleCount = maxEntries - position;
+    if (visibleCount > 12) visibleCount = 12;
+    if (visibleCount < 0) visibleCount = 0;
+
+    if (ctx->input->buttonsDown & KEY_TOUCH)
+    {
+        touchRead(&ctx->input->touchPos);
+
+        int tileRow = ctx->input->touchPos.py / 8;
+        int mid = (tileRow - 2) / 2;
+
+        if (mid < 0) mid = 0;
+        if (visibleCount > 0 && mid > visibleCount - 1) mid = visibleCount - 1;
+
+        if (visibleCount > 0)
+        {
+            touchPosition = mid;
+            int id = touchPosition + position;
+            strncpy(selectedLevel, levels[id], 15);
+            selectedLevel[15] = '\0';
+        }
+    }
 
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "pos %d", position);
@@ -56,6 +79,8 @@ void showDirs(gameContext *ctx)
     }
 
     NF_WriteText(0, 0, 24, clampInt(touchPosition * 2, 2, 20), "selected");
+
+    NF_WriteText(0, 0, 24, 22, selectedLevel);
 }
 void testWriteSizes()
 {
