@@ -13,6 +13,7 @@ $GRIT letters.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT uiAssets.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT bottomHud.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT incrementbtn.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
+$GRIT return.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 
 
 
