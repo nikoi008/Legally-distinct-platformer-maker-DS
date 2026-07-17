@@ -124,10 +124,6 @@ int getLetterFrame(char letter[1])
     {
         return (letter[0] - 48) + 26;
     }
-    else if (letter[0] >= 0 && letter[0] <= 9)
-    {
-        return (letter[0] + 26);
-    }
     return 36;
 }
 
