@@ -197,6 +197,8 @@ int main(int argc, char **argv){
     showChangePalWindow(false);
     Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
 
+    static bool returned = false;
+
     while (1)
     {
 
@@ -246,6 +248,9 @@ int main(int argc, char **argv){
                     showChangePalWindow(true);
                     showEditor(false);
                 }
+                if(state == LEVEL_SAVE){
+                    returned = false;
+                }
                 break;
 
 
@@ -273,7 +278,6 @@ int main(int argc, char **argv){
             setGreyBg(true);
             NF_ShowSprite(1,31,true);
                 static char word[12] = "";
-                static bool returned = false;
                 if (returned == false)
                 {
                     char returnedChar = keyboardLoop(12, word,&ctx);

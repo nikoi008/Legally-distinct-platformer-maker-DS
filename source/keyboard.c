@@ -131,6 +131,13 @@ int getLetterFrame(char letter[1])
     return 36;
 }
 
+void clearDisplay(int maxChars){
+    for (int i = 0; i < maxChars; i++)
+    {
+        char space = ' ';
+        NF_SpriteFrame(1,18 + i, getLetterFrame(&space));
+    }
+}
 void displayTyped(char *string,int maxChars)
 {
     for (int i = 0; i < maxChars; i++)
@@ -171,6 +178,12 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx)
         }
         else if (letter[0] == '+')
         {
+            letterPos = -1;
+            for(int i = 0; i < maxChars; i++){
+                string[i] = ' ';
+            }
+            clearDisplay(maxChars);
+            string[0] = '\0';
             return '+';
         }
         else
@@ -184,7 +197,16 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx)
 
         if (checkCollision(tRect,cancelBtn))
         {
+            
+            letterPos = -1;
+            for(int i = 0; i < maxChars; i++){
+                string[i] = ' ';
+            }         
+            clearDisplay(maxChars);
+            string[0] = '\0';
+
             return '*';
+
         }
     }
     nocashMessage(string);
