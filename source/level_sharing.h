@@ -1,7 +1,3 @@
-//
-// Created by Nicholas Soukmandjie on 12/07/2026.
-//
-
 #ifndef SOURCE_LEVEL_SHARING_H
 #define SOURCE_LEVEL_SHARING_H
 #include <stdbool.h>

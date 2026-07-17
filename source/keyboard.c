@@ -80,21 +80,14 @@ char keyboardPresses(gameContext *ctx)
     else if (checkCollision(layer3Bounds,tRect))
     {
         nocashMessage("layer 3");
-        //64,80
-        //algo is (tx - 64) / 16
-        //+ 16????????
-        // literally no clue why i have to add 16 but we ball
+        //algo is (tx - 48) / 16
         char key[2];
         key[0] = layer3[(tX - 48) / 16];
-        //key[1] = '\0';
-        //nocashMessage(key);
         return key[0];
     }
     else if (checkCollision(layer4Bounds,tRect))
     {
-        //80,96
-        //algo is (tx - 80) /16 mysterious +16 offset strikes again
-
+        //algo is (tx - 64) /16
         nocashMessage("layer 4");
         char key[2];
         key[0] = layer4[(tX - 64) / 16];
@@ -103,7 +96,6 @@ char keyboardPresses(gameContext *ctx)
 
     else if (tX > 37 && tX < 218 && tY > 168 && tY < 191)
     {
-        //nocashMessage("space");
         return ' ';
     }
 
@@ -113,8 +105,6 @@ char keyboardPresses(gameContext *ctx)
     }
     else if (checkCollision(backspaceBounds,tRect))
     {
-        //180 147, 217 168
-        //nocashMessage("backspace");
         return '-';
     }
     return '@';

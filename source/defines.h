@@ -16,5 +16,8 @@
 #define GRAVITY 2
 #define TRANSPARENT_BLOCK_OFFSET 64 // ie the green blocks
 #define HUD_Y_START 22
+#define BOTTOM_HUD_HEIGHT 22
+#define SCREEN_HEIGHT 192
+#define SCREEN_WIDTH 256
 
 #endif

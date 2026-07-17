@@ -25,6 +25,7 @@
 #include "transitions.h"
 #include "change_palette.h"
 
+
 int main(int argc, char **argv){
     editorContext editor = {};
     playerContext player = {};
@@ -43,7 +44,7 @@ int main(int argc, char **argv){
     initialise();
     mkdir("fat:/YouMakeLevels", 0777);
 
-    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 200);//todo dont just add +10,
+    NF_LoadTilesForBg("bg/tiles", "tiles", 512, 512, 0, TOTAL_BLOCKS + 200);
     NF_CreateTiledBg(1, TILE_LAYER, "tiles");
 
 
@@ -136,32 +137,20 @@ int main(int argc, char **argv){
 
     NF_CreateSprite(1,31,6,6,0,192 - 16);
     NF_ShowSprite(1,31,false);
-//    NF_CreateSprite(1,31,6,6,30,173);
-//    NF_CreateSprite(1,32,6,6,50,173);
-//    NF_CreateSprite(1,33,6,6,70,173);
-
-//    NF_SpriteFrame(1,31,1);
-//    NF_SpriteFrame(1,32,2);
-//    NF_SpriteFrame(1,33,3);
-
-
 
     NF_LoadSpriteGfx("bg/bottomHud",7,64,32);
     NF_LoadSpritePal("bg/bottomHud",7);
     NF_VramSpriteGfx(1,7,7,false);
     NF_VramSpritePal(1,7,7);
 
-    NF_CreateSprite(1,34,7,7,0,192-22); //todo probably make a define for this
-    NF_CreateSprite(1,35,7,7,64,192-22);
-    NF_CreateSprite(1,36,7,7,128,192-22);
-    NF_CreateSprite(1,38,7,7,192,192-22);
+    NF_CreateSprite(1,34,7,7,0,SCREEN_HEIGHT - BOTTOM_HUD_HEIGHT);
+    NF_CreateSprite(1,35,7,7,64,SCREEN_HEIGHT - BOTTOM_HUD_HEIGHT);
+    NF_CreateSprite(1,36,7,7,128,SCREEN_HEIGHT - BOTTOM_HUD_HEIGHT);
+    NF_CreateSprite(1,38,7,7,192,SCREEN_HEIGHT - BOTTOM_HUD_HEIGHT);
 
     NF_SpriteFrame(1,35,1);
     NF_SpriteFrame(1,36,2);
     NF_SpriteFrame(1,38,3);
-
-
-   // NF_CreateSprite(1,30,1,1,10,173);
 
     NF_LoadSpriteGfx("bg/incrementbtn",8,64,32);
     NF_LoadSpritePal("bg/incrementbtn",8);
@@ -204,11 +193,8 @@ int main(int argc, char **argv){
     NF_SpriteFrame(1,64,3);
     showKeyboard(false);
 
-    //showEditor(false);
     state = EDITOR;
     showChangePalWindow(false);
-
-    //testWriteSizes();
     Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
 
     while (1)
@@ -241,7 +227,6 @@ int main(int argc, char **argv){
             {
                 fadeOut(3,2);
             }
-                //state = EDITOR;
                 nocashMessage("main menu");
 
             break;
@@ -318,7 +303,6 @@ int main(int argc, char **argv){
                         word[0] = '\0';
                         state = EDITOR;
                     }
-                    //todo add a cancel button
                 }
                 NF_WriteText(0,0,0,14,word);
             break;

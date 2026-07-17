@@ -1,6 +1,3 @@
-//
-// Created by Nicholas Soukmandjie on 12/07/2026.
-//
 #include  "level_sharing.h"
 
 

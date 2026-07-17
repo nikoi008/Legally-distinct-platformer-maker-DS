@@ -142,7 +142,7 @@ void editorFrame(gameContext *ctx)
             fill(ctx);
         }
         
-        //NF_CreateSprite(1,30,1,1,10,173);
+
         if (ctx->input->buttonsDown & KEY_TOUCH && touchedToggleButton)
         {
             ctx->editor->rectFillOn = !ctx->editor->rectFillOn;
@@ -180,7 +180,7 @@ void showEditor(bool show)
     if (!show)NF_HideBg(1,2);
     for (int i = 0; i <= 5; i++)
     {
-        NF_ShowSprite(1,i,show); //highlight + HUD frames
+        NF_ShowSprite(1,i,show);
     }
     for (int i = 6; i <= 15; i++)
     {
@@ -190,9 +190,7 @@ void showEditor(bool show)
     NF_ShowSprite(1,35,show);
     NF_ShowSprite(1,36,show);
     NF_ShowSprite(1,38,show);
- //   NF_ShowSprite(1,31,show);
     NF_ShowSprite(1,32,show);
     NF_ShowSprite(1,33,show);
-   // NF_ShowSprite(1,37,show);
 }
 

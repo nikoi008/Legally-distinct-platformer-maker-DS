@@ -40,7 +40,6 @@ void editorToPlayScreen(gameContext *ctx)
 
     updateOrigin(ctx);
     updateTiles(ctx);
-    //swap with seperate HUD <-- todo
     NF_ShowSprite(1,1,false);
     NF_ShowSprite(1,2,false);
     NF_ShowSprite(1,3,false);
