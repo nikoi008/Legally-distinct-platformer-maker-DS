@@ -175,11 +175,6 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx)
         else if (letter[0] == '+')
         {
             letterPos = -1;
-            for(int i = 0; i < maxChars; i++){
-                string[i] = ' ';
-            }
-            clearDisplay(maxChars);
-            string[0] = '\0';
             return '+';
         }
         else

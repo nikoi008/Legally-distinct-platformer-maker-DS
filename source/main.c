@@ -198,7 +198,7 @@ int main(int argc, char **argv){
     Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
 
     static bool returned = false;
-
+    testWriteSizes();
     while (1)
     {
 
@@ -276,11 +276,12 @@ int main(int argc, char **argv){
             case LEVEL_SAVE:
             showEditor(false);
             setGreyBg(true);
+            static const int maxChars = 12;
             NF_ShowSprite(1,31,true);
                 static char word[12] = "";
                 if (returned == false)
                 {
-                    char returnedChar = keyboardLoop(12, word,&ctx);
+                    char returnedChar = keyboardLoop(maxChars, word,&ctx);
                     if ( returnedChar == '+')
                     {
 
@@ -293,8 +294,14 @@ int main(int argc, char **argv){
                         char dir[64] = "fat:/YouMakeLevels/";
                         strcat(dir,word);
                         saveLevel(dir);
-                        word[0] = '\0';
+                        
+                        
                         state = EDITOR;
+                        for(int i = 0; i < maxChars; i++){
+                            word[i] = ' ';
+                        }
+                        clearDisplay(maxChars);
+                        word[0] = '\0';
                     }
                     else if (returnedChar == '*')
                     {
