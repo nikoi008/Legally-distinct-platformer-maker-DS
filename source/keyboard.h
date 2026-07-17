@@ -11,4 +11,7 @@ char keyboardLoop(int maxChars, char *string,gameContext *ctx);
 void displayTyped(char *string,int maxChars);
 
 int getLetterFrame(char letter[1]);
+
+void clearDisplay(int maxChars);
+
 #endif //LEGALLY_DISTINCT_PLATFORMER_MAKER_DS_KEYBOARD_H
