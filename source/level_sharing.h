@@ -15,11 +15,25 @@ typedef struct __attribute__((packed))
     u8 blockID;
 } tilePacket;
 
+#define BATCH_SIZE 8
 #define MAX_CLIENTS 1
 #define AIR 0
 #define END 9999
 
-void SendTile(u16 x, u16 y, u8 blockID);
+typedef struct __attribute__((packed))
+{
+    tilePacket tiles[BATCH_SIZE];
+    u8 count;
+    u8 isEnd;
+    u16 batchNum;
+} tileBatchPacket;
+
+typedef struct __attribute__((packed))
+{
+    u16 batchNum;
+} batchAckPacket;
+
+void sendTiles(tileBatchPacket *batch);
 
 void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len);
 

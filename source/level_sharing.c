@@ -2,53 +2,51 @@
 
 
 Wifi_AccessPoint AccessPoint;
-int ackX = -1;
-int ackY = -1;
-volatile int pendingAckX = -1;
-volatile int pendingAckY = -1;
+volatile int ackBatch = -1;
+volatile int pendingBatchAck = -1;
+volatile int pendingBatchCount = 0;
+volatile bool pendingBatchEnd = false;
 bool levelDone = false;
 
-void SendTile(u16 x, u16 y, u8 blockID)
+void sendTiles(tileBatchPacket *batch)
 {
-    tilePacket pkt = { x, y, blockID };
-    Wifi_MultiplayerHostCmdTxFrame(&pkt, sizeof(pkt));
+    Wifi_MultiplayerHostCmdTxFrame(batch, sizeof(tileBatchPacket));
 }
 
 void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len)
 {
-    if (len < sizeof(tilePacket))
-    {
+    if (len < sizeof(batchAckPacket))
         return;
-    }
 
     if (type != WIFI_MPTYPE_REPLY)
         return;
 
-    tilePacket pkt;
-    Wifi_RxRawReadPacket(base, sizeof(pkt), (void *)&pkt);
-    ackX = pkt.x;
-    ackY = pkt.y;
+    batchAckPacket ack;
+    Wifi_RxRawReadPacket(base, sizeof(ack), (void *)&ack);
+    ackBatch = ack.batchNum;
 }
 
 void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len)
 {
-    if (len < sizeof(tilePacket))
-    {
+    if (len < sizeof(tileBatchPacket))
         return;
-    }
     if (type != WIFI_MPTYPE_CMD)
         return;
 
-    tilePacket pkt;
-    Wifi_RxRawReadPacket(base,sizeof(pkt),(void *)&pkt);
+    tileBatchPacket batch;
+    Wifi_RxRawReadPacket(base, sizeof(batch), (void *)&batch);
 
-    if (pkt.x != END)
+    pendingBatchAck   = batch.batchNum;
+    pendingBatchCount = batch.count;
+    pendingBatchEnd   = batch.isEnd;
+
+    if (!batch.isEnd)
     {
-        TILE_MAP[pkt.y][pkt.x] = pkt.blockID;
+        for (int i = 0; i < batch.count; i++)
+        {
+            TILE_MAP[batch.tiles[i].y][batch.tiles[i].x] = batch.tiles[i].blockID;
+        }
     }
-
-    pendingAckX = pkt.x;
-    pendingAckY = pkt.y;
 }
 
 void hostMode()
@@ -59,8 +57,7 @@ void hostMode()
     NF_WriteText(0, 0, 1, 0, "starting");
     NF_UpdateTextLayers();
 
-
-    Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(tilePacket), sizeof(tilePacket));
+    Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(tileBatchPacket), sizeof(batchAckPacket));
     Wifi_MultiplayerFromClientSetPacketHandler(FromClientPacketHandler);
 
     while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
@@ -92,7 +89,6 @@ void hostMode()
         NF_WriteText(0, 0, 1, 4, debugBuf);
         NF_UpdateTextLayers();
 
-
         if ((keys_down & KEY_A) && num_clients > 0)
             break;
     }
@@ -102,6 +98,12 @@ void hostMode()
     NF_UpdateTextLayers();
 
     int sent = 0;
+    int currentBatch = 0;
+
+    tileBatchPacket batch;
+    batch.count  = 0;
+    batch.isEnd  = false;
+    batch.batchNum = currentBatch;
 
     for (int y = 0; y < GRID_Y; y++)
     {
@@ -110,45 +112,83 @@ void hostMode()
             if (TILE_MAP[y][x] == AIR)
                 continue;
 
-            ackX = -1;
-            ackY = -1;
+            batch.tiles[batch.count].x = x;
+            batch.tiles[batch.count].y = y;
+            batch.tiles[batch.count].blockID = TILE_MAP[y][x];
+            batch.count++;
 
-            while (!(ackX == x && ackY == y))
+            if (batch.count >= BATCH_SIZE)
             {
-                swiWaitForVBlank();
-                SendTile(x, y, TILE_MAP[y][x]);
+                ackBatch = -1;
 
-                if (Wifi_MultiplayerGetClientMask() == 0)
+                while (ackBatch != currentBatch)
                 {
-                    snprintf(debugBuf, sizeof(debugBuf), "client lost %d,%d", x, y);
-                    NF_WriteText(0, 0, 1, 6, debugBuf);
+                    swiWaitForVBlank();
+                    sendTiles(&batch);
+
+                    if (Wifi_MultiplayerGetClientMask() == 0)
+                    {
+                        snprintf(debugBuf, sizeof(debugBuf), "client lost batch %d", currentBatch);
+                        NF_WriteText(0, 0, 1, 6, debugBuf);
+                        NF_UpdateTextLayers();
+                        goto client_lost;
+                    }
+
+                    snprintf(debugBuf, sizeof(debugBuf), "S batch %d ackbatch %d sent %d", currentBatch, ackBatch, sent);
+                    NF_WriteText(0, 0, 1, 7, debugBuf);
                     NF_UpdateTextLayers();
-                    goto client_lost;
                 }
-            }
 
-            sent++;
-
-            if (sent % 20 == 0)
-            {
-                snprintf(debugBuf, sizeof(debugBuf), "%d tiles", sent);
-                NF_WriteText(0, 0, 1, 6, debugBuf);
-                NF_UpdateTextLayers();
+                sent += batch.count;
+                currentBatch++;
+                batch.count = 0;
+                batch.batchNum = currentBatch;
             }
         }
     }
 
-    NF_UpdateTextLayers();
+    if (batch.count > 0)
+    {
+        ackBatch = -1;
 
-    ackX = -1;
+        while (ackBatch != currentBatch)
+        {
+            swiWaitForVBlank();
+            sendTiles(&batch);
 
-    while (ackX != END)
+            if (Wifi_MultiplayerGetClientMask() == 0)
+            {
+                snprintf(debugBuf, sizeof(debugBuf), "client lost batch %d", currentBatch);
+                NF_WriteText(0, 0, 1, 6, debugBuf);
+                NF_UpdateTextLayers();
+                goto client_lost;
+            }
+
+            snprintf(debugBuf, sizeof(debugBuf), "S batch %d ackbatch %d sent %d", currentBatch, ackBatch, sent);
+            NF_WriteText(0, 0, 1, 7, debugBuf);
+            NF_UpdateTextLayers();
+        }
+
+        sent += batch.count;
+        currentBatch++;
+    }
+
+    batch.count = 0;
+    batch.isEnd = true;
+    batch.batchNum = currentBatch;
+    ackBatch = -1;
+
+    while (ackBatch != currentBatch)
     {
         swiWaitForVBlank();
-        SendTile(END, 0, 0);
+        sendTiles(&batch);
 
         if (Wifi_MultiplayerGetClientMask() == 0)
             break;
+
+        snprintf(debugBuf, sizeof(debugBuf), "S batch %d ackbatch %d sent %d", currentBatch, ackBatch, sent);
+        NF_WriteText(0, 0, 1, 7, debugBuf);
+        NF_UpdateTextLayers();
     }
 
     snprintf(debugBuf, sizeof(debugBuf), "%d tiles sent", sent);
@@ -167,7 +207,7 @@ bool AccessPointSelectionMenu()
 
     NF_UpdateTextLayers();
 
-    Wifi_MultiplayerClientMode(sizeof(tilePacket));
+    Wifi_MultiplayerClientMode(sizeof(batchAckPacket));
 
     while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
 
@@ -205,8 +245,9 @@ void ClientMode()
 
     NF_ClearTextLayer(0, 0);
     levelDone = false;
-    pendingAckX = -1;
-    pendingAckY = -1;
+    pendingBatchAck = -1;
+    pendingBatchCount = 0;
+    pendingBatchEnd = false;
 
     for (int y = 0; y < GRID_Y; y++)
     {
@@ -257,36 +298,33 @@ void ClientMode()
     {
         swiWaitForVBlank();
 
-        if (pendingAckX != -1|| pendingAckY != -1)
+        if (pendingBatchAck != -1)
         {
-            tilePacket ack = {(u16)pendingAckX,(u16)pendingAckY,0};
+            batchAckPacket ack;
+            ack.batchNum = (u16)pendingBatchAck;
             Wifi_MultiplayerClientReplyTxFrame(&ack, sizeof(ack));
 
-            if (pendingAckX == END)
+            if (pendingBatchEnd)
             {
                 levelDone = true;
             }
             else
             {
-                received++;
-
-                if (received % 20 == 0)
-                {
-                    snprintf(debugBuf, sizeof(debugBuf), "got %d tiles", received);
-                    NF_WriteText(0, 0, 1, 7, debugBuf);
-                    NF_UpdateTextLayers();
-                }
+                received += pendingBatchCount;
+                snprintf(debugBuf, sizeof(debugBuf), "recieved %d got %d", pendingBatchAck, received);
+                NF_WriteText(0, 0, 1, 8, debugBuf);
+                NF_UpdateTextLayers();
             }
 
-            pendingAckX = -1;
-            pendingAckY = -1;
+            pendingBatchAck = -1;
+            pendingBatchCount = 0;
+            pendingBatchEnd = false;
         }
     }
 
     snprintf(debugBuf, sizeof(debugBuf), "done%d tiles", received);
     NF_WriteText(0, 0, 1, 6, debugBuf);
     NF_UpdateTextLayers();
-
 
     Wifi_DisconnectAP();
     Wifi_IdleMode();
