@@ -192,13 +192,15 @@ int main(int argc, char **argv){
     NF_CreateSprite(1,64,8,8,0,176);
     NF_SpriteFrame(1,64,3);
     showKeyboard(false);
-
-    state = EDITOR;
+    NF_LoadTilesForBg("bg/screen0Hud","s0Hud",256,256,0,10);
+    NF_CreateTiledBg(0,3,"s0Hud");
+    state = LEVEL_LOAD;
     showChangePalWindow(false);
     Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
 
     static bool returned = false;
     testWriteSizes();
+    lcdSwap(); //todo only do when state is level load
     while (1)
     {
 
@@ -348,6 +350,7 @@ int main(int argc, char **argv){
         NF_SpriteOamSet(1);
         swiWaitForVBlank();
         NF_UpdateVramMap(1, 3);
+        NF_UpdateVramMap(0, 3);
         NF_ScrollBg(1, 3,coords.scrollX,coords.scrollY);
         NF_ScrollBg(1,2,coords.cameraX % 16,coords.cameraY % 16);
         NF_UpdateTextLayers();

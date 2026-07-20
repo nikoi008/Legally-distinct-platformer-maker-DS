@@ -23,6 +23,7 @@ void initialise(){
 
     NF_InitSpriteBuffers();
     NF_InitSpriteSys(1);
+    NF_InitSpriteSys(0);
 
     NF_InitTextSys(0);
     NF_LoadTextFont("bg/font", "normal", 256, 256, 0);
