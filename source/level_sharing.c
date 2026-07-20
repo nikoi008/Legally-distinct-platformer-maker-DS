@@ -8,6 +8,12 @@ volatile int pendingBatchCount = 0;
 volatile bool pendingBatchEnd = false;
 bool levelDone = false;
 
+void delay(int frames) {
+    for (int i = 0; i < frames; i++) {
+        swiWaitForVBlank();
+    }
+}
+
 void sendTiles(tileBatchPacket *batch)
 {
     Wifi_MultiplayerHostCmdTxFrame(batch, sizeof(tileBatchPacket));
@@ -124,6 +130,7 @@ void hostMode()
                 while (ackBatch != currentBatch)
                 {
                     swiWaitForVBlank();
+                    swiWaitForVBlank();
                     sendTiles(&batch);
 
                     if (Wifi_MultiplayerGetClientMask() == 0)
@@ -154,6 +161,7 @@ void hostMode()
         while (ackBatch != currentBatch)
         {
             swiWaitForVBlank();
+            swiWaitForVBlank();
             sendTiles(&batch);
 
             if (Wifi_MultiplayerGetClientMask() == 0)
@@ -181,6 +189,7 @@ void hostMode()
     while (ackBatch != currentBatch)
     {
         swiWaitForVBlank();
+        swiWaitForVBlank();
         sendTiles(&batch);
 
         if (Wifi_MultiplayerGetClientMask() == 0)
@@ -196,6 +205,7 @@ void hostMode()
     NF_UpdateTextLayers();
 
 client_lost:
+    delay(2);
     Wifi_DisconnectAP();
     Wifi_IdleMode();
     state = EDITOR;
@@ -216,9 +226,7 @@ bool AccessPointSelectionMenu()
 
     Wifi_ScanMode();
 
-    for (int i = 0; i < 60; i++)
-        swiWaitForVBlank();
-
+    delay(60);
     int numAPs = Wifi_GetNumAP();
 
     snprintf(debugBuf, sizeof(debugBuf), "%d APs", numAPs);
@@ -291,6 +299,7 @@ void ClientMode()
     NF_WriteText(0, 0, 1, 4, "associated");
     NF_UpdateTextLayers();
 
+    delay(2);
 
     int received = 0;
 
@@ -301,7 +310,8 @@ void ClientMode()
         if (pendingBatchAck != -1)
         {
             batchAckPacket ack;
-            ack.batchNum = (u16)pendingBatchAck;
+            ack.batchNum = (u16)pendingBatchAck; 
+            delay(2);
             Wifi_MultiplayerClientReplyTxFrame(&ack, sizeof(ack));
 
             if (pendingBatchEnd)
@@ -326,6 +336,7 @@ void ClientMode()
     NF_WriteText(0, 0, 1, 6, debugBuf);
     NF_UpdateTextLayers();
 
+    delay(2);
     Wifi_DisconnectAP();
     Wifi_IdleMode();
     state = EDITOR;
