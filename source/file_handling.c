@@ -8,18 +8,27 @@
 #include "tilemap.h"
 #include <dirent.h>
 #include "change_palette.h"
-
+#define SCREEN_TILES_WIDTH 256 / 8
+#define SCREEN_TILES_HEIGHT 192 / 8
 void displayArrows()
 {
-    for(int x = 4; x <= 7; x ++){
-        for(int y = 0; y <= 5; y++){
-            NF_SetTileOfMap(0,3,((256 / 8) - 7) + x, y, x + (32 * y));
+    for(int x = 4; x <= 7; x ++){ //todo add defines for this
+        for(int y = 0; y <= 4; y++){
+            NF_SetTileOfMap(0,3,(SCREEN_TILES_WIDTH - 7) + x - 1, y, x + (32 * y));
         }
     }
 
     for(int x = 8; x <= 11; x++){
-        for(int y = 0; y <= 5; y++){
-            NF_SetTileOfMap(0,3,((256 / 8) -11) + x, ((192 / 8) - 5) + y, x + (32 * y));
+        for(int y = 0; y <= 4; y++){
+            NF_SetTileOfMap(0,3,(SCREEN_TILES_WIDTH -11) + x - 1, (  SCREEN_TILES_HEIGHT - 4) + y - 1, x + (32 * y));
+        }
+    }
+}
+
+void drawLoad(){
+    for(int x = 12; x <= 20; x++){
+        for(int y = 0; y <= 2 * 4; y++){
+            NF_SetTileOfMap(0,3,x - 12,SCREEN_TILES_HEIGHT - 4 + y,x + (32 * y));
         }
     }
 }
@@ -35,9 +44,7 @@ void displaySelected(int selected){
             }
         }
     }
-    NF_SetTileOfMap(0,3,20,20,3);
 }
-
 void showDirs(gameContext *ctx)
 {
     static char levels[512][16];
@@ -105,19 +112,20 @@ void showDirs(gameContext *ctx)
 
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "pos %d", position);
-    NF_WriteText(0, 0, 24, 0, buffer);
+   // NF_WriteText(0, 0, 24, 0, buffer);
 
     for (int i = 0; i < 12; i++)
     {
         int idx = i + position;
         if (idx >= maxEntries) break; 
-        NF_WriteText(0, 0, 1, 2 + (i * 2), levels[idx]);
+        NF_WriteText(0, 0, 10, 2 + (i * 2), levels[idx]);
     }
 
-    NF_WriteText(0, 0, 24, clampInt(touchPosition * 2, 2, 20), "selected");
+    //NF_WriteText(0, 0, 24, clampInt(touchPosition * 2, 2, 20), "selected");
     displaySelected(clampInt(touchPosition * 2, 0, 20));
-    NF_WriteText(0, 0, 24, 22, selectedLevel);
+   // NF_WriteText(0, 0, 24, 22, selectedLevel);
     displayArrows();
+    drawLoad();
 }
 void testWriteSizes()
 {
