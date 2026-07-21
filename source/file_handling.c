@@ -8,6 +8,21 @@
 #include "tilemap.h"
 #include <dirent.h>
 #include "change_palette.h"
+
+void displayArrows()
+{
+    for(int x = 4; x <= 7; x ++){
+        for(int y = 0; y <= 5; y++){
+            NF_SetTileOfMap(0,3,((256 / 8) - 7) + x, y, x + (32 * y));
+        }
+    }
+
+    for(int x = 8; x <= 11; x++){
+        for(int y = 0; y <= 5; y++){
+            NF_SetTileOfMap(0,3,((256 / 8) -11) + x, ((192 / 8) - 5) + y, x + (32 * y));
+        }
+    }
+}
 void displaySelected(int selected){
     selected += 2;
     for(int i = 0; i < 256 / 8 ; i++){
@@ -102,6 +117,7 @@ void showDirs(gameContext *ctx)
     NF_WriteText(0, 0, 24, clampInt(touchPosition * 2, 2, 20), "selected");
     displaySelected(clampInt(touchPosition * 2, 0, 20));
     NF_WriteText(0, 0, 24, 22, selectedLevel);
+    displayArrows();
 }
 void testWriteSizes()
 {

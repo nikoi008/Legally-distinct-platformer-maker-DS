@@ -192,7 +192,7 @@ int main(int argc, char **argv){
     NF_CreateSprite(1,64,8,8,0,176);
     NF_SpriteFrame(1,64,3);
     showKeyboard(false);
-    NF_LoadTilesForBg("bg/screen0Hud","s0Hud",256,256,0,10);
+    NF_LoadTilesForBg("bg/screen0Hud","s0Hud",256,256,0,300);
     NF_CreateTiledBg(0,3,"s0Hud");
     state = LEVEL_LOAD;
     showChangePalWindow(false);
