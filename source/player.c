@@ -6,6 +6,7 @@
 #include "defines.h"
 #include "globals.h"
 #include "types.h"
+#include "change_palette.h"
 
 bool checkCollision(rectangle rectA, rectangle rectB){
     return !(rectA.topLeftX > rectB.topLeftX + rectB.width ||
@@ -42,7 +43,8 @@ void xCollision(gameContext *ctx,bool leftDirection){
 }
 
  
-void yCollision(gameContext *ctx){ //TODO implement aabb because this will bite me in the back when enemies are implemented
+void yCollision(gameContext *ctx){ 
+    ctx->player->velocityY = clampInt(ctx->player->velocityY,0,15);
     if(ctx->player->velocityY > 0){
 
         int predictedBottomY = ctx->player->playerY + ctx->player->velocityY + 15;
@@ -57,7 +59,6 @@ void yCollision(gameContext *ctx){ //TODO implement aabb because this will bite 
         }
 
     } else if(ctx->player->velocityY < 0){
-
         int predictedTopY = ctx->player->playerY + ctx->player->velocityY;
         if(tileSolid(ctx->player->playerX / 16, predictedTopY / 16) || tileSolid((ctx->player->playerX + 15) / 16, predictedTopY / 16)){
             ctx->player->playerY = ((predictedTopY / 16) + 1) * 16;
@@ -69,6 +70,7 @@ void yCollision(gameContext *ctx){ //TODO implement aabb because this will bite 
             
         }
     }
+    ctx->player->velocityY = clampInt(ctx->player->velocityY,0,15);
 }
 
 void playerPhysics(gameContext *ctx){
