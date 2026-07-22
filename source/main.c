@@ -194,13 +194,13 @@ int main(int argc, char **argv){
     showKeyboard(false);
     NF_LoadTilesForBg("bg/screen0Hud","s0Hud",256,256,0,300);
     NF_CreateTiledBg(0,3,"s0Hud");
-    state = LEVEL_LOAD;
+    state = EDITOR;
     showChangePalWindow(false);
     Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
 
     static bool returned = false;
     testWriteSizes();
-    lcdSwap(); //todo only do when state is level load
+
     while (1)
     {
 
@@ -231,7 +231,13 @@ int main(int argc, char **argv){
             {
                 fadeOut(3,2);
             }
-                nocashMessage("main menu");
+
+            if(state == LEVEL_LOAD)
+            {
+                
+                lcdSwap();
+            }
+            nocashMessage("main menu");
 
             break;
             case EDITOR:
@@ -252,6 +258,11 @@ int main(int argc, char **argv){
                 }
                 if(state == LEVEL_SAVE){
                     returned = false;
+                }
+                if(state == LEVEL_LOAD)
+                {
+                    
+                    lcdSwap();
                 }
                 break;
 
@@ -322,6 +333,17 @@ int main(int argc, char **argv){
 
             case LEVEL_LOAD:
                 showDirs(&ctx);
+                if(state == EDITOR)
+                {
+                    for(int x = 0; x < 256 / 8; x++)
+                    {
+                        for(int y = 0; y < 256 / 8; y++)
+                        {
+                            NF_SetTileOfMap(0,3,x,y,0);
+                        }
+                    }
+                }
+
                 break;
 
             case CHANGE_PAL:

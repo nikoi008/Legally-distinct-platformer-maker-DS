@@ -43,7 +43,7 @@ void displaySelected(int selected)
         for(int j = 0; j < 256 /8; j++){
             if( j != selected && j != selected + 1 && j != selected - 1)
             {
-                NF_SetTileOfMap(0,3,i,j,0);
+                NF_SetTileOfMap(0,3,i,j,1);
             }
         }
     }
@@ -94,7 +94,7 @@ void drawBackToMenu(){
     }
 }
 
-void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx,int *position, char level[16])
+void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx,int *position, char level[16], bool *alreadyRead)
 {
     static const rectangle upArrowBtn = {224, 0,40, 32};
     static const rectangle downarrowBtn = {224, 152, 40, 32};
@@ -126,14 +126,23 @@ void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx,int *position, c
         {
             char dir[64] = "fat:/YouMakeLevels/";
             strcat(dir,level);
+            lcdSwap();
+            *alreadyRead = false;
+            for(int x = 0; x < 256 / 8; x++){
+                for(int y = 0; y < 256 / 8; y++){
+                    NF_SetTileOfMap(0,3,x,y,0);
+                }
+            }
+            state = EDITOR;
             loadLevel(dir,ctx);
+
         }
     }
     
 }
 void showDirs(gameContext *ctx)
 {
-    static const rectangle borderRect = {72, 8, 176 - 72, 96 - 8};
+    static const rectangle borderRect = {72, 8, 168 - 72, 184 - 8};
     static char levels[512][16];
     static int maxEntries = 0;
     static bool alreadyRead = false;
@@ -143,6 +152,13 @@ void showDirs(gameContext *ctx)
     //}
     //maxEntries = 20;
     //alreadyRead = true; only use when testing in no$gba
+
+
+    for(int i = 0; i < 256 / 8; i++){
+        for(int j = 0; j < 256 / 8; j++){
+            NF_SetTileOfMap(0,3,i,j,1);
+        }
+    }
     if (!alreadyRead)
     {
         maxEntries = 0;
@@ -160,6 +176,7 @@ void showDirs(gameContext *ctx)
         }
         if (dr != NULL) closedir(dr);
         alreadyRead = true;
+        
     }
 
     static int touchPosition = 0;
@@ -168,7 +185,7 @@ void showDirs(gameContext *ctx)
 
     if (ctx->input->buttonsUp & KEY_DOWN) position++;
     if (ctx->input->buttonsUp & KEY_UP) position--;
-    checkCollisionBtnsLvlLoadAndInputHandling(ctx,&position,selectedLevel);
+    checkCollisionBtnsLvlLoadAndInputHandling(ctx,&position,selectedLevel,&alreadyRead);
 
     int maxPos = ((maxEntries > 12) ? (maxEntries - 12) : 0) + 1;
     position = clampInt(position, 0, maxPos);
