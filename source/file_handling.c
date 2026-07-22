@@ -84,6 +84,14 @@ void drawBorder()
 
 
 }
+
+void drawBackToMenu(){
+    for(int x = 0; x < 4; x++){
+        for(int y = 0; y < 4; y++){
+            NF_SetTileOfMap(0,3,x,y,22 + x + (y * 32));
+        }
+    }
+}
 void showDirs(gameContext *ctx)
 {
     static char levels[512][16];
@@ -169,8 +177,9 @@ alreadyRead = true;
     displaySelected(clampInt(touchPosition * 2, 0, 20));
    // NF_WriteText(0, 0, 24, 22, selectedLevel);
     displayArrows();
-    //drawLoad();
+    drawLoad();
     drawBorder();
+    drawBackToMenu();
 }
 void testWriteSizes()
 {
