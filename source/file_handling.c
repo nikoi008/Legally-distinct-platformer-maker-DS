@@ -112,11 +112,11 @@ void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx,int *position, c
         rectangle touchRect = {ctx->input->touchPos.px,ctx->input->touchPos.py,1,1};
         if(checkCollision(touchRect,upArrowBtn) || ctx->input->buttonsUp & KEY_UP)
         {
-            *position--;
+            (*position)--;
         }
         if(checkCollision(touchRect,downarrowBtn)|| ctx->input->buttonsUp & KEY_DOWN)
         {
-            *position++;
+            (*position)++;
         }
         if(checkCollision(touchRect,backToMenuBtn) || ctx->input->buttonsUp & KEY_B)
         {
@@ -133,6 +133,7 @@ void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx,int *position, c
 }
 void showDirs(gameContext *ctx)
 {
+    static const rectangle borderRect = {72, 8, 176 - 72, 96 - 8};
     static char levels[512][16];
     static int maxEntries = 0;
     static bool alreadyRead = false;
@@ -184,15 +185,19 @@ void showDirs(gameContext *ctx)
     if (ctx->input->buttonsDown & KEY_TOUCH)
     {
         touchRead(&ctx->input->touchPos);
+        rectangle touchRect = {ctx->input->touchPos.px, ctx->input->touchPos.py, 1, 1};
 
-        int tileRow = ctx->input->touchPos.py / 8;
-        int mid = (tileRow - 2) / 2;
+        if (checkCollision(touchRect, borderRect))
+        {
+            int tileRow = ctx->input->touchPos.py / 8;
+            int mid = (tileRow - 2) / 2;
 
-        if (mid < 0) mid = 0;
-        if (visibleCount > 0 && mid > visibleCount - 1) mid = visibleCount - 1;
+            if (mid < 0) mid = 0;
+            if (visibleCount > 0 && mid > visibleCount - 1) mid = visibleCount - 1;
 
-        if (visibleCount > 0)
-            touchPosition = mid;
+            if (visibleCount > 0)
+                touchPosition = mid;
+        }
     }
 
     int selectedIndex = position + touchPosition;
