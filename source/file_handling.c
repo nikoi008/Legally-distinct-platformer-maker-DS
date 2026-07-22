@@ -8,6 +8,7 @@
 #include "tilemap.h"
 #include <dirent.h>
 #include "change_palette.h"
+#include "player.h"
 #define SCREEN_TILES_WIDTH 256 / 8
 #define SCREEN_TILES_HEIGHT 192 / 8
 void displayArrows()
@@ -35,7 +36,7 @@ void drawLoad(){
 void displaySelected(int selected)
 {
     selected += 2;
-    for(int i = 0; i < 256 / 8 ; i++){
+    for(int i =  72 / 8 + 1; i < 168 / 8; i++){
         NF_SetTileOfMap(0,3,i,selected,2);
         NF_SetTileOfMap(0,3,i,selected - 1,2);
         NF_SetTileOfMap(0,3,i,selected + 1,2);
@@ -92,17 +93,55 @@ void drawBackToMenu(){
         }
     }
 }
+
+void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx,int *position, char level[16])
+{
+    static const rectangle upArrowBtn = {224, 0,40, 32};
+    static const rectangle downarrowBtn = {224, 152, 40, 32};
+    static const rectangle backToMenuBtn = {0, 0, 32, 32};
+    static const rectangle loadLevelBtn = {0, 160, 32, 72};
+    
+    //rectangle touchRect;
+    if(ctx->input->buttonsDown & KEY_TOUCH)
+    {
+        touchRead(&ctx->input->touchPos);
+    }
+
+    if(ctx->input->buttonsUp & KEY_TOUCH)
+    {
+        rectangle touchRect = {ctx->input->touchPos.px,ctx->input->touchPos.py,1,1};
+        if(checkCollision(touchRect,upArrowBtn) || ctx->input->buttonsUp & KEY_UP)
+        {
+            *position--;
+        }
+        if(checkCollision(touchRect,downarrowBtn)|| ctx->input->buttonsUp & KEY_DOWN)
+        {
+            *position++;
+        }
+        if(checkCollision(touchRect,backToMenuBtn) || ctx->input->buttonsUp & KEY_B)
+        {
+            state = EDITOR;
+        }
+        if(checkCollision(touchRect,loadLevelBtn) || ctx->input->buttonsUp & KEY_A)
+        {
+            char dir[64] = "fat:/YouMakeLevels/";
+            strcat(dir,level);
+            loadLevel(dir,ctx);
+        }
+    }
+    
+}
 void showDirs(gameContext *ctx)
 {
     static char levels[512][16];
     static int maxEntries = 0;
     static bool alreadyRead = false;
-for (int i = 0; i < 20; i++) {
-    strncpy(levels[i], "TESTLEVEL01", 15);
-    levels[i][15] = '\0';
-}
-maxEntries = 20;
-alreadyRead = true;
+    //for (int i = 0; i < 20; i++) {
+    //    strncpy(levels[i], "TESTLEVEL01", 15);
+    //    levels[i][15] = '\0';
+    //}
+    //maxEntries = 20;
+    //alreadyRead = true; only use when testing in no$gba
     if (!alreadyRead)
     {
         maxEntries = 0;
@@ -128,6 +167,7 @@ alreadyRead = true;
 
     if (ctx->input->buttonsUp & KEY_DOWN) position++;
     if (ctx->input->buttonsUp & KEY_UP) position--;
+    checkCollisionBtnsLvlLoadAndInputHandling(ctx,&position,selectedLevel);
 
     int maxPos = ((maxEntries > 12) ? (maxEntries - 12) : 0) + 1;
     position = clampInt(position, 0, maxPos);
