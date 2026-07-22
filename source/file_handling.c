@@ -32,25 +32,69 @@ void drawLoad(){
         }
     }
 }
-void displaySelected(int selected){
+void displaySelected(int selected)
+{
     selected += 2;
     for(int i = 0; i < 256 / 8 ; i++){
         NF_SetTileOfMap(0,3,i,selected,2);
         NF_SetTileOfMap(0,3,i,selected - 1,2);
         NF_SetTileOfMap(0,3,i,selected + 1,2);
         for(int j = 0; j < 256 /8; j++){
-            if( j != selected && j != selected + 1 && j != selected - 1){
+            if( j != selected && j != selected + 1 && j != selected - 1)
+            {
                 NF_SetTileOfMap(0,3,i,j,0);
             }
         }
     }
+}
+
+void drawBorder()
+{
+   //topleft is 72,8 bottom is 72, 184
+   //bottomright 168 184 topright 168 8
+
+   for(int i = 72 / 8; i < 168 / 8; i++ )
+   {
+        NF_SetTileOfMap(0,3,i,1,59); // top row
+   }
+
+
+
+   for(int y = 8 / 8; y < 184 / 8; y++ )
+   {
+        NF_SetTileOfMap(0,3,168 / 8, y,29); // right column
+   }
+
+
+   for(int x = 80 /8; x < 172 / 8; x++){
+    NF_SetTileOfMap(0,3,x,184 / 8,58); //bottom row
+   }
+
+
+
+   for(int y = 8 / 8; y < 184 / 8; y++)
+   {
+        NF_SetTileOfMap(0,3,72 / 8,y,27);
+   }
+
+    NF_SetTileOfMap(0,3,172 / 8, 184 / 8,28); // bottom right
+    NF_SetTileOfMap(0,3,72 / 8, 8 / 8,30); // yop left
+    NF_SetTileOfMap(0,3,168 / 8, 1, 31); //top right
+    NF_SetTileOfMap(0,3,72 / 8, 184 / 8,26); //bottom left
+
+
 }
 void showDirs(gameContext *ctx)
 {
     static char levels[512][16];
     static int maxEntries = 0;
     static bool alreadyRead = false;
-
+for (int i = 0; i < 20; i++) {
+    strncpy(levels[i], "TESTLEVEL01", 15);
+    levels[i][15] = '\0';
+}
+maxEntries = 20;
+alreadyRead = true;
     if (!alreadyRead)
     {
         maxEntries = 0;
@@ -125,7 +169,8 @@ void showDirs(gameContext *ctx)
     displaySelected(clampInt(touchPosition * 2, 0, 20));
    // NF_WriteText(0, 0, 24, 22, selectedLevel);
     displayArrows();
-    drawLoad();
+    //drawLoad();
+    drawBorder();
 }
 void testWriteSizes()
 {
