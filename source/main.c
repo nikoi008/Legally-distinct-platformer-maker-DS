@@ -25,6 +25,17 @@
 #include "transitions.h"
 #include "change_palette.h"
 
+void scrollCheckerboard(int screen, int layer){
+    static int frame = 0;
+    static int offset = 0;
+    frame++;
+
+    if(frame >= 2){
+        offset = (offset + 1) % 32;
+        frame = 0;
+    }
+    NF_ScrollBg(screen,layer,offset,offset);
+}
 
 int main(int argc, char **argv){
     editorContext editor = {};
@@ -206,8 +217,14 @@ int main(int argc, char **argv){
     showEditor(false);
     NF_LoadTiledBg("bg/bottomMenu","menu",256,256);
     NF_CreateTiledBg(1,1,"menu");
+
+    NF_LoadTiledBg("bg/checkerboard","checkerboard",256,256);
+    NF_CreateTiledBg(1,2,"checkerboard");
+    NF_CreateTiledBg(0,2,"checkerboard");
     while (1)
     {
+        scrollCheckerboard(1,2);
+        scrollCheckerboard(0,2);
 
         if (state != SHARE_LEVEL_CLIENT && state != SHARE_LEVEL_HOST)
         {

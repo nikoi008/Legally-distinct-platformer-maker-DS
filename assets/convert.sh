@@ -24,6 +24,7 @@ $GRIT tiles.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT screen0Hud.png -ftB -fh! -gTFF00FF -gt -gB8 -m!
 $GRIT title.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
 $GRIT bottomMenu.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
+$GRIT checkerboard.png -ftB -fh! -gTFF00FF -gt -gB8 -mR8 -mLs
 
 
 mv *.pal *.img *.map ../nitrofiles/bg
