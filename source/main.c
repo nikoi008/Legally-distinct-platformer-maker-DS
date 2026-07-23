@@ -194,13 +194,18 @@ int main(int argc, char **argv){
     showKeyboard(false);
     NF_LoadTilesForBg("bg/screen0Hud","s0Hud",256,256,0,300);
     NF_CreateTiledBg(0,3,"s0Hud");
-    state = EDITOR;
+    state = MAIN_MENU;
     showChangePalWindow(false);
     Wifi_InitDefault(INIT_ONLY | WIFI_LOCAL_ONLY);
 
     static bool returned = false;
     testWriteSizes();
 
+    NF_LoadTiledBg("bg/title","title",256,256);
+    NF_CreateTiledBg(0,1,"title");
+    showEditor(false);
+    NF_LoadTiledBg("bg/bottomMenu","menu",256,256);
+    NF_CreateTiledBg(1,1,"menu");
     while (1)
     {
 
