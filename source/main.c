@@ -48,7 +48,8 @@ void showMainMenu(bool show)
         NF_ShowBg(0, 2);
 
         NF_ShowBg(1, 1);
-        NF_ShowBg(1, 2);
+        NF_CreateTiledBg(1, 2, "checkerboard");
+        //NF_ShowBg(1, 2);
     }
     else
     {
@@ -56,7 +57,7 @@ void showMainMenu(bool show)
         NF_HideBg(0, 2);
 
         NF_HideBg(1, 1);
-        // NF_HideBg(1,2);
+        NF_DeleteTiledBg(1,2);
     }
 }
 
@@ -125,6 +126,27 @@ void editorToMainMenu(gameContext *ctx)
     oamUpdate(&oamSub);
     NF_ClearTextLayer(0, 0);
     fadeIn(3, 2);
+}
+
+void mainMenuToLoadlevel(gameContext *ctx)
+{
+    fadeOut(3, 4);
+    showMainMenu(false);
+    lcdSwap();
+    NF_ClearTextLayer(0, 0);
+    NF_SpriteOamSet(0);
+    NF_SpriteOamSet(1);
+    swiWaitForVBlank();
+    NF_UpdateVramMap(1, 3);
+    NF_ScrollBg(1, 3, ctx->coords->scrollX, ctx->coords->scrollY);
+    NF_ScrollBg(1, 2, ctx->coords->cameraX % 16, ctx->coords->cameraY % 16);
+    NF_UpdateTextLayers();
+    oamUpdate(&oamMain);
+    oamUpdate(&oamSub);
+    NF_ClearTextLayer(0, 0);
+    fadeIn(3, 2);
+   // setBrightness(2, -16);
+    
 }
 void mainmenuFrame(gameContext *ctx)
 {
@@ -340,6 +362,11 @@ int main(int argc, char **argv)
                 if(state == EDITOR)
                 {
                     mainMenuToEditor(&ctx);
+                }
+
+                if(state == LEVEL_LOAD)
+                {
+                    mainMenuToLoadlevel(&ctx);
                 }
                 break;
             case EDITOR:
