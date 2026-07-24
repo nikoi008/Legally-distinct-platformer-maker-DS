@@ -1,0 +1,27 @@
+---
+BasedOnStyle: LLVM
+Language: Cpp
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+
+BreakBeforeBraces: Allman
+SpaceBeforeParens: Never
+
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+
+PointerAlignment: Right
+DerivePointerAlignment: false
+
+IndentCaseLabels: true
+SortIncludes: false
+ReflowComments: false
+
+BinPackArguments: false
+AllowAllArgumentsOnNextLine: true
+...
