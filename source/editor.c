@@ -229,9 +229,15 @@ void editorFrame(gameContext *ctx)
 void showEditor(bool show)
 {
     if(show)
+    {
         NF_ShowBg(1, 2);
+        NF_CreateTiledBg(1, 2, "grid");
+    }
     if(!show)
+    {
         NF_HideBg(1, 2);
+        NF_DeleteTiledBg(1, 2);
+    }
     for(int i = 0; i <= 5; i++)
     {
         NF_ShowSprite(1, i, show);
@@ -240,6 +246,7 @@ void showEditor(bool show)
     {
         NF_ShowSprite(1, i, show);
     }
+
     NF_ShowSprite(1, 34, show);
     NF_ShowSprite(1, 35, show);
     NF_ShowSprite(1, 36, show);
