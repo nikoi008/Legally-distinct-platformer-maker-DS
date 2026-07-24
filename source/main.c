@@ -487,8 +487,11 @@ int main(int argc, char **argv)
                     }
                 }
                 showDirs(&ctx);
+                
                 if(state == EDITOR)
                 {
+                    fadeOut(3,4);
+                    showEditor(true);
                     for(int x = 0; x < 256 / 8; x++)
                     {
                         for(int y = 0; y < 256 / 8; y++)
@@ -496,12 +499,24 @@ int main(int argc, char **argv)
                             NF_SetTileOfMap(0, 3, x, y, 0);
                         }
                     } 
-                    showEditor(true);
+                
                     //lcdSwap();
+                    NF_SpriteOamSet(0);
+                    NF_SpriteOamSet(1);
+                    swiWaitForVBlank();
+                    NF_UpdateVramMap(1, 3);
+                    NF_UpdateVramMap(0, 3);
+                    NF_ScrollBg(1, 3, coords.scrollX, coords.scrollY);
+                    NF_ScrollBg(1, 2, coords.cameraX % 16, coords.cameraY % 16);
+                    NF_UpdateTextLayers();
+                    oamUpdate(&oamMain);
+                    oamUpdate(&oamSub);
+                    fadeIn(3,2);
                 }
 
                 if(state == MAIN_MENU)
                 {
+                    fadeOut(3,4);
                     for(int x = 0; x < 256 / 8; x++)
                     {
                         for(int y = 0; y < 256 / 8; y++)
@@ -511,6 +526,18 @@ int main(int argc, char **argv)
                     }
                     showMainMenu(true);
                     lcdSwap();
+                    NF_SpriteOamSet(0);
+                    NF_SpriteOamSet(1);
+                    swiWaitForVBlank();
+                    NF_UpdateVramMap(1, 3);
+                    NF_UpdateVramMap(0, 3);
+                    NF_ScrollBg(1, 3, coords.scrollX, coords.scrollY);
+                    NF_ScrollBg(1, 2, coords.cameraX % 16, coords.cameraY % 16);
+                    NF_UpdateTextLayers();
+                    oamUpdate(&oamMain);
+                    oamUpdate(&oamSub);
+
+                    fadeIn(3,2);
                 }
 
                 break;
@@ -531,10 +558,32 @@ int main(int argc, char **argv)
 
             case SHARE_LEVEL_CLIENT:
                 //showMainMenu(false);
-                NF_CreateTiledBg(1,2,"grid");
-                ClientMode();
+                NF_HideBg(0,3);
+                NF_HideBg(0,2);
+                NF_HideBg(1,2);
+                NF_HideBg(1,3);
+                NF_HideBg(0,1);
+                NF_HideBg(1,1);
+                NF_SpriteOamSet(0);
+                NF_SpriteOamSet(1);
+                swiWaitForVBlank();
+                NF_UpdateVramMap(1, 3);
+                NF_UpdateVramMap(0, 3);
+                NF_ScrollBg(1, 3, coords.scrollX, coords.scrollY);
+                NF_ScrollBg(1, 2, coords.cameraX % 16, coords.cameraY % 16);
+                NF_UpdateTextLayers();
+                oamUpdate(&oamMain);
+                oamUpdate(&oamSub);
+                //NF_CreateTiledBg(1,2,"grid");
+                ClientMode(&ctx);
                 if(state == EDITOR)
                 {
+                    NF_ShowBg(0,3);
+                    NF_ShowBg(0,2);
+                    NF_ShowBg(1,2);
+                    NF_ShowBg(1,3);
+                    NF_ShowBg(0,1);
+                    NF_ShowBg(1,1);
                     showEditor(true);
                     NF_CreateTiledBg(1,2,"grid");
                     mainMenuToEditor(&ctx);
