@@ -87,7 +87,7 @@ void playScreenToEditor(gameContext *ctx)
     NF_CreateTiledBg(1, 2, "grid");
     showEditor(true);
     lcdSwap();
-    ctx->coords->cameraX = ctx->editor->flagPosX - 64; //mysterious offset todo figure out
+    ctx->coords->cameraX = ctx->editor->flagPosX * 16- 64; //mysterious offset todo figure out
     ctx->coords->cameraY = ctx->editor->flagPosY * 16 - 64;
     ctx->coords->scrollX = 128;
     ctx->coords->scrollY = 160;
