@@ -48,12 +48,24 @@ void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len)
     }
 }
 
+void hostWarning()
+{
+    NF_WriteText(0, 0, 1, 6, "STILL IN DEVELOPMENT");
+    NF_WriteText(0, 0, 1, 8, "LEVELS UP TO 10K TILES CAN BE");
+    NF_WriteText(0, 0, 1, 9, "SENT");
+    NF_WriteText(0, 0, 1, 11, "PRESS B OR THE SCREEN TO CANCEL");
+    NF_WriteText(0, 0, 1, 13, "IF STUCK GO BACK AND TRY AGAIN");
+}
+
+
 void hostMode()
 {
     char debugBuf[64];
+    u16 buttonsDown;
 
     NF_ClearTextLayer(0, 0);
     NF_WriteText(0, 0, 1, 0, "starting");
+    hostWarning();
     NF_UpdateTextLayers();
 
     Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(tileBatchPacket), sizeof(batchAckPacket));
@@ -72,8 +84,9 @@ void hostMode()
     {
 
         scanKeys();
-        u16 keys_down = keysDown();
+        buttonsDown = keysDown();
         swiWaitForVBlank();
+        hostWarning();
 
         Wifi_ConnectedClient client[MAX_CLIENTS];
         int num_clients = Wifi_MultiplayerGetClients(MAX_CLIENTS, &(client[0]));
@@ -89,8 +102,17 @@ void hostMode()
         NF_WriteText(0, 0, 1, 4, debugBuf);
         NF_UpdateTextLayers();
 
-        if((keys_down & KEY_A) && num_clients > 0)
+        if((buttonsDown & KEY_A) && num_clients > 0)
             break;
+
+        if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        {
+            Wifi_MultiplayerAllowNewClients(false);
+            Wifi_DisconnectAP();
+            Wifi_IdleMode();
+            state = EDITOR;
+            return;
+        }
     }
     Wifi_MultiplayerAllowNewClients(false);
 
@@ -125,6 +147,14 @@ void hostMode()
                 {
                     swiWaitForVBlank();
                     sendTiles(&batch);
+                    hostWarning();
+
+                    scanKeys();
+                    buttonsDown = keysDown();
+                    if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+                    {
+                        goto client_lost;
+                    }
 
                     if(Wifi_MultiplayerGetClientMask() == 0)
                     {
@@ -156,6 +186,14 @@ void hostMode()
         {
             swiWaitForVBlank();
             sendTiles(&batch);
+            hostWarning();
+
+            scanKeys();
+            buttonsDown = keysDown();
+            if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+            {
+                goto client_lost;
+            }
 
             if(Wifi_MultiplayerGetClientMask() == 0)
             {
@@ -183,6 +221,14 @@ void hostMode()
     {
         swiWaitForVBlank();
         sendTiles(&batch);
+        hostWarning();
+
+        scanKeys();
+        buttonsDown = keysDown();
+        if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        {
+            break;
+        }
 
         if(Wifi_MultiplayerGetClientMask() == 0)
             break;
@@ -205,6 +251,7 @@ client_lost:
 bool AccessPointSelectionMenu()
 {
     char debugBuf[64];
+    u16 buttonsDown;
 
     NF_UpdateTextLayers();
 
@@ -213,16 +260,33 @@ bool AccessPointSelectionMenu()
     while(!Wifi_LibraryModeReady())
         swiWaitForVBlank();
 
+
+    scanKeys();
+
     for(int i = 0; i < 50; i++)
     {
+        scanKeys();
+        buttonsDown = keysDown();
+        if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        {
+            state = MAIN_MENU;
+            return false;
+        }
+
         snprintf(debugBuf, sizeof(debugBuf), "scanning %d", i);
         NF_WriteText(0, 0, 1, 0, debugBuf);
         NF_UpdateTextLayers();
 
         Wifi_ScanMode();
 
-        for(int i = 0; i < 120; i++)
+        for(int j = 0; j < 120; j++)
+        {
             swiWaitForVBlank();
+            scanKeys();
+            buttonsDown = keysDown();
+            if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+                return false;
+        }
 
         int numAPs = Wifi_GetNumAP();
 
@@ -258,6 +322,7 @@ void clientWarning()
 void ClientMode(gameContext *ctx)
 {
     char debugBuf[64];
+    u16 buttonsDown;
     NF_ClearTextLayer(0, 0);
     levelDone = false;
     pendingBatchAck = -1;
@@ -275,10 +340,8 @@ void ClientMode(gameContext *ctx)
     if(!AccessPointSelectionMenu())
     {
         clientWarning();
-        //NF_WriteText(0, 0, 1, 3, "no ap found");
-        //NF_UpdateTextLayers();
-        //state = EDITOR;
-        //return;
+        state = MAIN_MENU;
+        return;
     }
     clientWarning();
     Wifi_MultiplayerFromHostSetPacketHandler(FromHostPacketHandler);
@@ -291,16 +354,18 @@ void ClientMode(gameContext *ctx)
     {
         clientWarning();
         swiWaitForVBlank();
+        scanKeys();
+        buttonsDown = keysDown();
         int status = Wifi_AssocStatus();
 
         if(status == ASSOCSTATUS_ASSOCIATED)
             break;
 
-        if(status == ASSOCSTATUS_CANNOTCONNECT || ctx->input->buttonsDown & KEY_TOUCH || ctx->input->buttonsDown & KEY_B)
+        if(status == ASSOCSTATUS_CANNOTCONNECT || buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
         {
             NF_WriteText(0, 0, 1, 4, "cannot connect");
             NF_UpdateTextLayers();
-            state = EDITOR;
+            state = MAIN_MENU;
             return;
         }
     }
@@ -314,6 +379,17 @@ void ClientMode(gameContext *ctx)
     {
         swiWaitForVBlank();
         clientWarning();
+        scanKeys();
+        buttonsDown = keysDown();
+
+        if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        {
+            Wifi_DisconnectAP();
+            Wifi_IdleMode();
+            state = MAIN_MENU;
+            return;
+        }
+
         if(pendingBatchAck != -1)
         {
             batchAckPacket ack;

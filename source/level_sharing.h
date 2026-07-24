@@ -43,6 +43,6 @@ void hostMode();
 
 bool AccessPointSelectionMenu();
 
-void ClientMode();
+void ClientMode(gameContext *ctx);
 
 #endif //SOURCE_LEVEL_SHARING_H

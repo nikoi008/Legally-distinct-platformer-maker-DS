@@ -590,6 +590,16 @@ int main(int argc, char **argv)
                     NF_CreateTiledBg(1,2,"grid");
                     updateTiles(&ctx);
                 }
+
+                if(state == MAIN_MENU)
+                {
+                    NF_ShowBg(0,3);
+                    NF_ShowBg(0,2);
+                    NF_ShowBg(1,2);
+                    NF_ShowBg(1,3);
+                    NF_ShowBg(0,1);
+                    NF_ShowBg(1,1);
+                }
                 break;
         }
         NF_SpriteOamSet(0);
