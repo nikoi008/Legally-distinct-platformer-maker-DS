@@ -52,7 +52,6 @@ void xCollision(gameContext *ctx, bool leftDirection)
 
 void yCollision(gameContext *ctx)
 {
-    ctx->player->velocityY = clampInt(ctx->player->velocityY, 0, 15);
     if(ctx->player->velocityY > 0)
     {
 
@@ -85,7 +84,7 @@ void yCollision(gameContext *ctx)
             }
         }
     }
-    ctx->player->velocityY = clampInt(ctx->player->velocityY, 0, 15);
+    ctx->player->velocityY = clampInt(ctx->player->velocityY, -JUMP_FORCE, 15);
 }
 
 void playerPhysics(gameContext *ctx)
