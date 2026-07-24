@@ -126,6 +126,7 @@ void editorFrame(gameContext *ctx)
     static const rectangle saveLevelBtnBounds = {50, 173, 16, 16};
     static const rectangle changePalBtnBounds = {70, 173, 16, 16};
     static const rectangle playBtnBounds = {214, 173, 32, 16};
+    static const rectangle sharlvlBounds = {90,173,16,16};
 
     if(!ctx->input->keyboardOn)
     {
@@ -223,6 +224,10 @@ void editorFrame(gameContext *ctx)
         {
             state = PLAY_SCREEN;
         }
+        if(ctx->input->buttonsDown & KEY_TOUCH && checkCollision(sharlvlBounds,touchPosRect))
+        {
+            state = SHARE_LEVEL_HOST;
+        }
     }
 }
 
@@ -236,7 +241,7 @@ void showEditor(bool show)
     if(!show)
     {
         NF_HideBg(1, 2);
-        NF_DeleteTiledBg(1, 2);
+        //NF_DeleteTiledBg(1, 2);
     }
     for(int i = 0; i <= 5; i++)
     {

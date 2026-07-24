@@ -57,7 +57,7 @@ void showMainMenu(bool show)
         NF_HideBg(0, 2);
 
         NF_HideBg(1, 1);
-        NF_DeleteTiledBg(1,2);
+        NF_DeleteTiledBg(1, 2);
     }
 }
 
@@ -87,6 +87,7 @@ void mainMenuToEditor(gameContext *ctx)
     NF_SpriteOamSet(1);
     swiWaitForVBlank();
     NF_UpdateVramMap(1, 3);
+    // NF_UpdateVramMap(1, 2);
     NF_ScrollBg(1, 3, ctx->coords->scrollX, ctx->coords->scrollY);
     NF_ScrollBg(1, 2, ctx->coords->cameraX % 16, ctx->coords->cameraY % 16);
     NF_UpdateTextLayers();
@@ -144,11 +145,11 @@ void mainMenuToLoadlevel(gameContext *ctx)
     NF_UpdateTextLayers();
     oamUpdate(&oamMain);
     oamUpdate(&oamSub);
-   // NF_ClearTextLayer(0, 0);
+    // NF_ClearTextLayer(0, 0);
     NF_UpdateVramMap(0, 3);
     fadeIn(3, 2);
     
-   // setBrightness(2, -16);
+    // setBrightness(2, -16);
 }
 void mainmenuFrame(gameContext *ctx)
 {
@@ -165,10 +166,10 @@ void mainmenuFrame(gameContext *ctx)
             state = EDITOR;
         if(checkCollision(touchRect, loadBtnBounds))
             state = LEVEL_LOAD;
-        //if(checkCollision(touchRect,wifiBtnBounds)) //state = WIFI_PROMPT (menu with choice of recieve/send)
+        if(checkCollision(touchRect, wifiBtnBounds))
+            state = SHARE_LEVEL_CLIENT;
     }
 }
-
 
 int main(int argc, char **argv)
 {
@@ -355,7 +356,10 @@ int main(int argc, char **argv)
         ctx.input->buttonsDown = keysDown();
         ctx.input->buttonsHeld = keysHeld();
         ctx.input->buttonsUp = keysUp();
-
+        if(ctx.input->buttonsUp & KEY_A)
+        {
+            state = SHARE_LEVEL_HOST;
+        }
         switch(state)
         {
             case MAIN_MENU:
@@ -367,7 +371,7 @@ int main(int argc, char **argv)
                 {
                     mainMenuToEditor(&ctx);
                                            
-                        NF_CreateTiledBg(1,2,"grid");
+                    NF_CreateTiledBg(1, 2, "grid");
                 }
 
                 if(state == LEVEL_LOAD)
@@ -475,6 +479,13 @@ int main(int argc, char **argv)
                 break;
 
             case LEVEL_LOAD:
+                for(int i = 0; i < 512 / 8; i++)
+                {
+                    for(int j = 0; j < 512 / 8; j++)
+                    {
+                        NF_SetTileOfMap(1, TILE_LAYER, i, j, 0);
+                    }
+                }
                 showDirs(&ctx);
                 if(state == EDITOR)
                 {
@@ -486,7 +497,6 @@ int main(int argc, char **argv)
                         }
                     } 
                     showEditor(true);
-                    NF_CreateTiledBg(1,2,"grid");
                     //lcdSwap();
                 }
 
@@ -520,9 +530,15 @@ int main(int argc, char **argv)
                 break;
 
             case SHARE_LEVEL_CLIENT:
+                //showMainMenu(false);
+                NF_CreateTiledBg(1,2,"grid");
                 ClientMode();
                 if(state == EDITOR)
                 {
+                    showEditor(true);
+                    NF_CreateTiledBg(1,2,"grid");
+                    mainMenuToEditor(&ctx);
+                    NF_CreateTiledBg(1,2,"grid");
                     updateTiles(&ctx);
                 }
                 break;
