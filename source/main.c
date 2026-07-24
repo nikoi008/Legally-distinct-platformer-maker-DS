@@ -37,6 +37,107 @@ void scrollCheckerboard(int screen, int layer){
     NF_ScrollBg(screen,layer,offset,offset);
 }
 
+void showMainMenu(bool show){
+
+    if(show)
+    {
+        NF_ShowBg(0,1);
+        NF_ShowBg(0,2);
+
+        NF_ShowBg(1,1);
+        NF_ShowBg(1,2);
+    }
+    else 
+    {
+        NF_HideBg(0,1);
+        NF_HideBg(0,2);
+
+        NF_HideBg(1,1);
+       // NF_HideBg(1,2);
+    }
+
+}
+
+void mainMenuToEditor(gameContext *ctx){
+    fadeOut(3,4);
+    NF_DeleteTiledBg(1,2);
+    NF_CreateTiledBg(1,2,"grid");
+    showEditor(true);
+    updateTiles(ctx);
+    updateOrigin(ctx);
+    for (int i = 0; i < 10; i++)
+    {
+        NF_ShowSprite(1,i + 6,true);
+    }
+    scrollLogic(ctx);
+    updateTiles(ctx);
+    updateOrigin(ctx);
+    showMainMenu(false);
+    state = EDITOR;
+    debugText(ctx);
+    NF_ShowSprite(1,5,false);
+    NF_ShowSprite(1,0,true);
+    editorFrame(ctx);
+    NF_MoveSprite(1,0,(ctx->editor->currentBlock * 20) + 30,3);
+    NF_SpriteOamSet(0);
+    NF_SpriteOamSet(1);
+    swiWaitForVBlank();
+    NF_UpdateVramMap(1, 3);
+    NF_ScrollBg(1, 3,ctx->coords->scrollX,ctx->coords->scrollY);
+    NF_ScrollBg(1,2,ctx->coords->cameraX % 16,ctx->coords->cameraY % 16);
+    NF_UpdateTextLayers();
+    oamUpdate(&oamMain);
+    oamUpdate(&oamSub);
+    fadeIn(3,2);
+}
+
+void editorToMainMenu(gameContext *ctx){
+    fadeOut(3,4);
+    NF_ClearTextLayer(0, 0);
+    NF_DeleteTiledBg(1,2);
+    NF_CreateTiledBg(1,2,"checkerboard");
+    showEditor(false);
+    updateTiles(ctx);
+    updateOrigin(ctx);
+    for (int i = 0; i < 10; i++)
+    {
+        NF_ShowSprite(1,i + 6,false);
+    }
+    NF_ClearTextLayer(0, 0);
+    scrollLogic(ctx);
+    updateTiles(ctx);
+    updateOrigin(ctx);
+    showMainMenu(true);
+    state = MAIN_MENU;
+    NF_ClearTextLayer(0, 0);
+    NF_SpriteOamSet(0);
+    NF_SpriteOamSet(1);
+    swiWaitForVBlank();
+    NF_UpdateVramMap(1, 3);
+    NF_ScrollBg(1, 3,ctx->coords->scrollX,ctx->coords->scrollY);
+    NF_ScrollBg(1,2,ctx->coords->cameraX % 16,ctx->coords->cameraY % 16);
+    NF_UpdateTextLayers();
+    oamUpdate(&oamMain);
+    oamUpdate(&oamSub);
+    NF_ClearTextLayer(0, 0);
+    fadeIn(3,2);
+
+
+}
+void mainmenuFrame(gameContext *ctx){
+    static const rectangle createBtnBounds = {40,8,215 - 40, 55 - 8};
+    static const rectangle loadBtnBounds = {40,72,215 - 40, 119 - 72};
+    static const rectangle wifiBtnBounds = {40,136,215,183};
+
+    if(ctx->input->buttonsDown & KEY_TOUCH) touchRead(&ctx->input->touchPos);
+    if(ctx->input->buttonsUp & KEY_TOUCH)
+    {
+        rectangle touchRect = {ctx->input->touchPos.px,ctx->input->touchPos.py,1,1};
+        if(checkCollision(touchRect,createBtnBounds)) state = EDITOR;
+        if(checkCollision(touchRect,loadBtnBounds)) state = LEVEL_LOAD;
+        //if(checkCollision(touchRect,wifiBtnBounds)) //state = WIFI_PROMPT (menu with choice of recieve/send)
+    }
+}
 int main(int argc, char **argv){
     editorContext editor = {};
     playerContext player = {};
@@ -223,8 +324,6 @@ int main(int argc, char **argv){
     NF_CreateTiledBg(0,2,"checkerboard");
     while (1)
     {
-        scrollCheckerboard(1,2);
-        scrollCheckerboard(0,2);
 
         if (state != SHARE_LEVEL_CLIENT && state != SHARE_LEVEL_HOST)
         {
@@ -235,32 +334,15 @@ int main(int argc, char **argv){
          ctx.input->buttonsHeld = keysHeld();
          ctx.input->buttonsUp = keysUp();
 
-        if (ctx.input->buttonsDown & KEY_Y)
-        {
-            state = SHARE_LEVEL_CLIENT;
-        }
-        if (ctx.input->buttonsDown & KEY_X)
-        {
-            state = SHARE_LEVEL_HOST;
-        }
         switch(state){
             case MAIN_MENU:
-            if (ctx.input->buttonsDown & KEY_A)
-            {
-                fadeIn(3,2);
-            }
-            if (ctx.input->buttonsDown & KEY_B)
-            {
-                fadeOut(3,2);
-            }
+                scrollCheckerboard(1,2);
+                scrollCheckerboard(0,2);
+                mainmenuFrame(&ctx);
 
-            if(state == LEVEL_LOAD)
-            {
-                
-                lcdSwap();
-            }
-            nocashMessage("main menu");
-
+                if(state == EDITOR){
+                    mainMenuToEditor(&ctx);
+                }
             break;
             case EDITOR:
                 debugText(&ctx);
@@ -285,6 +367,9 @@ int main(int argc, char **argv){
                 {
                     
                     lcdSwap();
+                }
+                if(state == MAIN_MENU){
+                    editorToMainMenu(&ctx);
                 }
                 break;
 
