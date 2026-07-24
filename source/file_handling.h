@@ -5,8 +5,8 @@ void showDirs(gameContext *ctx);
 
 void testWriteSizes();
 
-void saveLevel(char* name);
+void saveLevel(char *name);
 
-void loadLevel(char* name,gameContext *ctx);
+void loadLevel(char *name, gameContext *ctx);
 
 #endif //LEGALLY_DISTINCT_PLATFORMER_MAKER_DS_FILE_HANDLING_H

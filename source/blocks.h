@@ -12,4 +12,4 @@ bool tileSolid(int tileX, int tileY);
 
 void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx);
 
-#endif 
+#endif

@@ -3,7 +3,8 @@
 
 #include <nds.h>
 
-typedef enum{
+typedef enum
+{
     MAIN_MENU,
     EDITOR,
     PLAY_SCREEN,
@@ -14,17 +15,16 @@ typedef enum{
     SHARE_LEVEL_CLIENT
 } gameStates;
 
-typedef enum{
+typedef enum
+{
     IDLE,
     WALKING,
     JUMPING,
     FALLING,
-}playerState;
+} playerState;
 
-
-
-
-typedef struct{
+typedef struct
+{
     u16 buttonsDown;
     u16 buttonsHeld;
     u16 buttonsUp;
@@ -32,9 +32,10 @@ typedef struct{
     int touchTileX;
     int touchTileY;
     bool keyboardOn;
-}inputs;
+} inputs;
 
-typedef struct{
+typedef struct
+{
     int originTileX;
     int originTileY;
     int scrollX;
@@ -43,9 +44,10 @@ typedef struct{
     int cameraY;
     int cameraTileX;
     int cameraTileY;
-}worldCoordinates;
+} worldCoordinates;
 
-typedef struct{
+typedef struct
+{
     int leftMostX;
     int leftMostY;
     int currentBlock;
@@ -54,9 +56,10 @@ typedef struct{
     bool rectFillOn;
     int firstTouchX;
     int firstTouchY;
-}editorContext;
+} editorContext;
 
-typedef struct{
+typedef struct
+{
     int playerX;
     int playerY;
     int velocityX;
@@ -66,14 +69,15 @@ typedef struct{
     bool hflip;
     playerState currentState;
 
-}playerContext;
+} playerContext;
 
-typedef struct{
+typedef struct
+{
     int topLeftX;
     int topLeftY;
     int width;
     int height;
-}rectangle;
+} rectangle;
 
 typedef struct
 {
@@ -81,14 +85,15 @@ typedef struct
     playerContext *player;
     editorContext *editor;
     inputs *input;
-}gameContext;
+} gameContext;
 
-typedef struct{
+typedef struct
+{
     bool solid;
-    void (*ifTouched)(gameContext*);
+    void (*ifTouched)(gameContext *);
     int topLeftTile;
     int topRightTile;
     int bottomLeftTile;
     int bottomRightTile;
-}block;
+} block;
 #endif

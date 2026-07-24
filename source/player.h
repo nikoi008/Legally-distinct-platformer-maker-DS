@@ -9,7 +9,7 @@ void playerAnim(gameContext *ctx);
 
 void playerPhysics(gameContext *ctx);
 
-void xCollision(gameContext *ctx,bool leftDirection);
+void xCollision(gameContext *ctx, bool leftDirection);
 
 void yCollision(gameContext *ctx);
 

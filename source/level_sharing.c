@@ -1,5 +1,4 @@
-#include  "level_sharing.h"
-
+#include "level_sharing.h"
 
 Wifi_AccessPoint AccessPoint;
 volatile int ackBatch = -1;
@@ -15,10 +14,10 @@ void sendTiles(tileBatchPacket *batch)
 
 void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len)
 {
-    if (len < sizeof(batchAckPacket))
+    if(len < sizeof(batchAckPacket))
         return;
 
-    if (type != WIFI_MPTYPE_REPLY)
+    if(type != WIFI_MPTYPE_REPLY)
         return;
 
     batchAckPacket ack;
@@ -28,21 +27,21 @@ void FromClientPacketHandler(Wifi_MPPacketType type, int aid, int base, int len)
 
 void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len)
 {
-    if (len < sizeof(tileBatchPacket))
+    if(len < sizeof(tileBatchPacket))
         return;
-    if (type != WIFI_MPTYPE_CMD)
+    if(type != WIFI_MPTYPE_CMD)
         return;
 
     tileBatchPacket batch;
     Wifi_RxRawReadPacket(base, sizeof(batch), (void *)&batch);
 
-    pendingBatchAck   = batch.batchNum;
+    pendingBatchAck = batch.batchNum;
     pendingBatchCount = batch.count;
-    pendingBatchEnd   = batch.isEnd;
+    pendingBatchEnd = batch.isEnd;
 
-    if (!batch.isEnd)
+    if(!batch.isEnd)
     {
-        for (int i = 0; i < batch.count; i++)
+        for(int i = 0; i < batch.count; i++)
         {
             TILE_MAP[batch.tiles[i].y][batch.tiles[i].x] = batch.tiles[i].blockID;
         }
@@ -60,7 +59,8 @@ void hostMode()
     Wifi_MultiplayerHostMode(MAX_CLIENTS, sizeof(tileBatchPacket), sizeof(batchAckPacket));
     Wifi_MultiplayerFromClientSetPacketHandler(FromClientPacketHandler);
 
-    while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
+    while(!Wifi_LibraryModeReady())
+        swiWaitForVBlank();
     Wifi_SetChannel(6);
     Wifi_MultiplayerAllowNewClients(true);
 
@@ -68,7 +68,7 @@ void hostMode()
     swiWaitForVBlank();
     swiWaitForVBlank();
 
-    while (1)
+    while(1)
     {
 
         scanKeys();
@@ -78,7 +78,7 @@ void hostMode()
         Wifi_ConnectedClient client[MAX_CLIENTS];
         int num_clients = Wifi_MultiplayerGetClients(MAX_CLIENTS, &(client[0]));
 
-        if (num_clients > 0)
+        if(num_clients > 0)
         {
             snprintf(debugBuf, sizeof(debugBuf), "%d client A", num_clients);
         }
@@ -89,7 +89,7 @@ void hostMode()
         NF_WriteText(0, 0, 1, 4, debugBuf);
         NF_UpdateTextLayers();
 
-        if ((keys_down & KEY_A) && num_clients > 0)
+        if((keys_down & KEY_A) && num_clients > 0)
             break;
     }
     Wifi_MultiplayerAllowNewClients(false);
@@ -101,15 +101,15 @@ void hostMode()
     int currentBatch = 0;
 
     tileBatchPacket batch;
-    batch.count  = 0;
-    batch.isEnd  = false;
+    batch.count = 0;
+    batch.isEnd = false;
     batch.batchNum = currentBatch;
 
-    for (int y = 0; y < GRID_Y; y++)
+    for(int y = 0; y < GRID_Y; y++)
     {
-        for (int x = 0; x < GRID_X; x++)
+        for(int x = 0; x < GRID_X; x++)
         {
-            if (TILE_MAP[y][x] == AIR)
+            if(TILE_MAP[y][x] == AIR)
                 continue;
 
             batch.tiles[batch.count].x = x;
@@ -117,16 +117,16 @@ void hostMode()
             batch.tiles[batch.count].blockID = TILE_MAP[y][x];
             batch.count++;
 
-            if (batch.count >= BATCH_SIZE)
+            if(batch.count >= BATCH_SIZE)
             {
                 ackBatch = -1;
 
-                while (ackBatch != currentBatch)
+                while(ackBatch != currentBatch)
                 {
                     swiWaitForVBlank();
                     sendTiles(&batch);
 
-                    if (Wifi_MultiplayerGetClientMask() == 0)
+                    if(Wifi_MultiplayerGetClientMask() == 0)
                     {
                         snprintf(debugBuf, sizeof(debugBuf), "client lost batch %d", currentBatch);
                         NF_WriteText(0, 0, 1, 6, debugBuf);
@@ -134,7 +134,8 @@ void hostMode()
                         goto client_lost;
                     }
 
-                    snprintf(debugBuf, sizeof(debugBuf), "S batch %d ackbatch %d sent %d", currentBatch, ackBatch, sent);
+                    snprintf(
+                        debugBuf, sizeof(debugBuf), "S batch %d ackbatch %d sent %d", currentBatch, ackBatch, sent);
                     NF_WriteText(0, 0, 1, 7, debugBuf);
                     NF_UpdateTextLayers();
                 }
@@ -147,16 +148,16 @@ void hostMode()
         }
     }
 
-    if (batch.count > 0)
+    if(batch.count > 0)
     {
         ackBatch = -1;
 
-        while (ackBatch != currentBatch)
+        while(ackBatch != currentBatch)
         {
             swiWaitForVBlank();
             sendTiles(&batch);
 
-            if (Wifi_MultiplayerGetClientMask() == 0)
+            if(Wifi_MultiplayerGetClientMask() == 0)
             {
                 snprintf(debugBuf, sizeof(debugBuf), "client lost batch %d", currentBatch);
                 NF_WriteText(0, 0, 1, 6, debugBuf);
@@ -178,12 +179,12 @@ void hostMode()
     batch.batchNum = currentBatch;
     ackBatch = -1;
 
-    while (ackBatch != currentBatch)
+    while(ackBatch != currentBatch)
     {
         swiWaitForVBlank();
         sendTiles(&batch);
 
-        if (Wifi_MultiplayerGetClientMask() == 0)
+        if(Wifi_MultiplayerGetClientMask() == 0)
             break;
 
         snprintf(debugBuf, sizeof(debugBuf), "S batch %d ackbatch %d sent %d", currentBatch, ackBatch, sent);
@@ -209,14 +210,15 @@ bool AccessPointSelectionMenu()
 
     Wifi_MultiplayerClientMode(sizeof(batchAckPacket));
 
-    while (!Wifi_LibraryModeReady()) swiWaitForVBlank();
+    while(!Wifi_LibraryModeReady())
+        swiWaitForVBlank();
 
     NF_WriteText(0, 0, 1, 0, "scanning");
     NF_UpdateTextLayers();
 
     Wifi_ScanMode();
 
-    for (int i = 0; i < 60; i++)
+    for(int i = 0; i < 60; i++)
         swiWaitForVBlank();
 
     int numAPs = Wifi_GetNumAP();
@@ -225,7 +227,7 @@ bool AccessPointSelectionMenu()
     NF_WriteText(0, 0, 1, 1, debugBuf);
     NF_UpdateTextLayers();
 
-    if (numAPs <= 0)
+    if(numAPs <= 0)
         return false;
 
     Wifi_AccessPoint ap;
@@ -249,37 +251,37 @@ void ClientMode()
     pendingBatchCount = 0;
     pendingBatchEnd = false;
 
-    for (int y = 0; y < GRID_Y; y++)
+    for(int y = 0; y < GRID_Y; y++)
     {
-        for (int x = 0; x < GRID_X; x++)
+        for(int x = 0; x < GRID_X; x++)
         {
             TILE_MAP[y][x] = AIR;
         }
     }
 
-    if (!AccessPointSelectionMenu())
+    if(!AccessPointSelectionMenu())
     {
-        NF_WriteText(0, 0, 1, 3,  "no ap found");
+        NF_WriteText(0, 0, 1, 3, "no ap found");
         NF_UpdateTextLayers();
-        state =EDITOR;
+        state = EDITOR;
         return;
     }
 
     Wifi_MultiplayerFromHostSetPacketHandler(FromHostPacketHandler);
-    NF_WriteText(0, 0, 1, 3,  "connecting");
+    NF_WriteText(0, 0, 1, 3, "connecting");
     NF_UpdateTextLayers();
 
     Wifi_ConnectOpenAP(&AccessPoint);
 
-    while (1)
+    while(1)
     {
         swiWaitForVBlank();
         int status = Wifi_AssocStatus();
 
-        if (status == ASSOCSTATUS_ASSOCIATED)
+        if(status == ASSOCSTATUS_ASSOCIATED)
             break;
 
-        if (status == ASSOCSTATUS_CANNOTCONNECT)
+        if(status == ASSOCSTATUS_CANNOTCONNECT)
         {
             NF_WriteText(0, 0, 1, 4, "cannot connect");
             NF_UpdateTextLayers();
@@ -291,20 +293,19 @@ void ClientMode()
     NF_WriteText(0, 0, 1, 4, "associated");
     NF_UpdateTextLayers();
 
-
     int received = 0;
 
-    while (!levelDone)
+    while(!levelDone)
     {
         swiWaitForVBlank();
 
-        if (pendingBatchAck != -1)
+        if(pendingBatchAck != -1)
         {
             batchAckPacket ack;
             ack.batchNum = (u16)pendingBatchAck;
             Wifi_MultiplayerClientReplyTxFrame(&ack, sizeof(ack));
 
-            if (pendingBatchEnd)
+            if(pendingBatchEnd)
             {
                 levelDone = true;
             }
@@ -330,5 +331,3 @@ void ClientMode()
     Wifi_IdleMode();
     state = EDITOR;
 }
-
-

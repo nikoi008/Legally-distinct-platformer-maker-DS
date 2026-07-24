@@ -8,103 +8,129 @@
 #include "types.h"
 #include "change_palette.h"
 
-bool checkCollision(rectangle rectA, rectangle rectB){
-    return !(rectA.topLeftX > rectB.topLeftX + rectB.width ||
-             rectA.topLeftX + rectA.width < rectB.topLeftX ||
+bool checkCollision(rectangle rectA, rectangle rectB)
+{
+    return !(rectA.topLeftX > rectB.topLeftX + rectB.width || rectA.topLeftX + rectA.width < rectB.topLeftX ||
              rectA.topLeftY + rectA.height < rectB.topLeftY ||
              rectA.topLeftY > rectB.topLeftY + rectB.height); // returns true if overlapping
 }
 
-void playerAnim(gameContext *ctx){
+void playerAnim(gameContext *ctx)
+{
     static int tick;
-    if(ctx->player->currentState == IDLE){
-        NF_SpriteFrame(1,5,0); 
+    if(ctx->player->currentState == IDLE)
+    {
+        NF_SpriteFrame(1, 5, 0);
         tick = 0;
-    } else {
+    }
+    else
+    {
         tick++;
-        if(tick >= 45){
+        if(tick >= 45)
+        {
             tick = 0;
         }
 
         ctx->player->frame = (tick * 10) / 45;
-        NF_SpriteFrame(1,5,ctx->player->frame);
+        NF_SpriteFrame(1, 5, ctx->player->frame);
     }
 }
 
-void xCollision(gameContext *ctx,bool leftDirection){
+void xCollision(gameContext *ctx, bool leftDirection)
+{
     int predictedPlace = ctx->player->playerX + ((leftDirection == true) ? -1 : 1 + 16);
 
-    if(tileSolid(predictedPlace / 16, ctx->player->playerY / 16)){
+    if(tileSolid(predictedPlace / 16, ctx->player->playerY / 16))
+    {
         ctx->player->velocityX = 0;
     }
-    if(blocks[TILE_MAP[ctx->player->playerY / 16 ][predictedPlace / 16]].ifTouched != NULL){
+    if(blocks[TILE_MAP[ctx->player->playerY / 16][predictedPlace / 16]].ifTouched != NULL)
+    {
         blocks[TILE_MAP[ctx->player->playerY / 16][predictedPlace / 16]].ifTouched(ctx);
     }
 }
 
- 
-void yCollision(gameContext *ctx){ 
-    ctx->player->velocityY = clampInt(ctx->player->velocityY,0,15);
-    if(ctx->player->velocityY > 0){
+void yCollision(gameContext *ctx)
+{
+    ctx->player->velocityY = clampInt(ctx->player->velocityY, 0, 15);
+    if(ctx->player->velocityY > 0)
+    {
 
         int predictedBottomY = ctx->player->playerY + ctx->player->velocityY + 15;
 
-        if(tileSolid(ctx->player->playerX / 16,predictedBottomY / 16) || tileSolid((ctx->player->playerX + 15) / 16, predictedBottomY / 16)){
+        if(tileSolid(ctx->player->playerX / 16, predictedBottomY / 16) ||
+           tileSolid((ctx->player->playerX + 15) / 16, predictedBottomY / 16))
+        {
             ctx->player->playerY = (predictedBottomY / 16) * 16 - 16;
             ctx->player->velocityY = 0;
             ctx->player->grounded = true;
         }
-        if(blocks[TILE_MAP[predictedBottomY / 16 ][ctx->player->playerX / 16]].ifTouched != NULL){
-            blocks[TILE_MAP[predictedBottomY / 16 ][ctx->player->playerX / 16]].ifTouched(ctx);
+        if(blocks[TILE_MAP[predictedBottomY / 16][ctx->player->playerX / 16]].ifTouched != NULL)
+        {
+            blocks[TILE_MAP[predictedBottomY / 16][ctx->player->playerX / 16]].ifTouched(ctx);
         }
-
-    } else if(ctx->player->velocityY < 0){
+    }
+    else if(ctx->player->velocityY < 0)
+    {
         int predictedTopY = ctx->player->playerY + ctx->player->velocityY;
-        if(tileSolid(ctx->player->playerX / 16, predictedTopY / 16) || tileSolid((ctx->player->playerX + 15) / 16, predictedTopY / 16)){
+        if(tileSolid(ctx->player->playerX / 16, predictedTopY / 16) ||
+           tileSolid((ctx->player->playerX + 15) / 16, predictedTopY / 16))
+        {
             ctx->player->playerY = ((predictedTopY / 16) + 1) * 16;
             ctx->player->velocityY = 0;
 
-            if(blocks[TILE_MAP[predictedTopY / 16 ][ctx->player->playerX / 16]].ifTouched != NULL){
-               blocks[TILE_MAP[predictedTopY / 16 ][ctx->player->playerX / 16]].ifTouched(ctx);
+            if(blocks[TILE_MAP[predictedTopY / 16][ctx->player->playerX / 16]].ifTouched != NULL)
+            {
+                blocks[TILE_MAP[predictedTopY / 16][ctx->player->playerX / 16]].ifTouched(ctx);
             }
-            
         }
     }
-    ctx->player->velocityY = clampInt(ctx->player->velocityY,0,15);
+    ctx->player->velocityY = clampInt(ctx->player->velocityY, 0, 15);
 }
 
-void playerPhysics(gameContext *ctx){
+void playerPhysics(gameContext *ctx)
+{
 
     ctx->player->velocityX = 0;
 
-    if(ctx->input->buttonsHeld & KEY_LEFT || ctx->input->buttonsHeld & KEY_RIGHT){
+    if(ctx->input->buttonsHeld & KEY_LEFT || ctx->input->buttonsHeld & KEY_RIGHT)
+    {
         ctx->player->currentState = WALKING;
-    }else{
+    }
+    else
+    {
         ctx->player->currentState = IDLE;
     }
 
-    if(ctx->input->buttonsHeld & KEY_LEFT){
-        ctx->player->velocityX = -SPEED;ctx->player->hflip = true;
-        NF_HflipSprite(1,5,ctx->player->hflip);
-        xCollision(ctx,true);
-    } 
-    if(ctx->input->buttonsHeld & KEY_RIGHT){
-        ctx->player->velocityX =  SPEED;
+    if(ctx->input->buttonsHeld & KEY_LEFT)
+    {
+        ctx->player->velocityX = -SPEED;
+        ctx->player->hflip = true;
+        NF_HflipSprite(1, 5, ctx->player->hflip);
+        xCollision(ctx, true);
+    }
+    if(ctx->input->buttonsHeld & KEY_RIGHT)
+    {
+        ctx->player->velocityX = SPEED;
         ctx->player->hflip = false;
-        NF_HflipSprite(1,5,ctx->player->hflip);
-        xCollision(ctx,false);
+        NF_HflipSprite(1, 5, ctx->player->hflip);
+        xCollision(ctx, false);
     }
 
-    if(ctx->input->buttonsDown & KEY_B && ctx->player->grounded){
+    if(ctx->input->buttonsDown & KEY_B && ctx->player->grounded)
+    {
         ctx->player->velocityY = -JUMP_FORCE;
         ctx->player->grounded = false;
-    } else if(!tileSolid(ctx->player->playerX/16, (ctx->player->playerY/16)+1)){
+    }
+    else if(!tileSolid(ctx->player->playerX / 16, (ctx->player->playerY / 16) + 1))
+    {
         ctx->player->velocityY += GRAVITY; // todo when falling too fast clips through blocks
         ctx->player->grounded = false;
-    } else {
+    }
+    else
+    {
         ctx->player->velocityY = 0;
         ctx->player->grounded = true;
-        
     }
     yCollision(ctx);
     ctx->player->playerX += ctx->player->velocityX;

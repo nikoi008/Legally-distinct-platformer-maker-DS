@@ -7,12 +7,11 @@
 #include "camera.h"
 #include "tilemap.h"
 
-void backToEditor(gameContext *ctx){
+void backToEditor(gameContext *ctx)
+{
 
-   state = EDITOR;
+    state = EDITOR;
 }
-
-
 
 void initBlocks(gameContext *ctx)
 {
@@ -37,43 +36,44 @@ void initBlocks(gameContext *ctx)
     blocks[2].bottomLeftTile = 7;
     blocks[2].bottomRightTile = 8;
 
-    blocks[3].solid = true;//spike
+    blocks[3].solid = true; //spike
     blocks[3].ifTouched = backToEditor;
     blocks[3].topLeftTile = 9;
     blocks[3].topRightTile = 10;
     blocks[3].bottomLeftTile = 11;
     blocks[3].bottomRightTile = 12;
 
-    blocks[4].solid = false;//end flag
+    blocks[4].solid = false; //end flag
     blocks[4].ifTouched = backToEditor;
     blocks[4].topLeftTile = 13;
     blocks[4].topRightTile = 14;
     blocks[4].bottomLeftTile = 15;
     blocks[4].bottomRightTile = 16;
 }
-bool tileSolid(int tileX,int tileY){
+bool tileSolid(int tileX, int tileY)
+{
     return blocks[TILE_MAP[tileY][tileX]].solid;
-
 }
 
-int coordsToTile(int coord){
+int coordsToTile(int coord)
+{
     return coord / 16;
 }
 
-
-
-void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx){
-    if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y) return;
-    if(ctx->currentBlock == 2){
+void addTile(int tileX, int tileY, int currentBlock, editorContext *ctx)
+{
+    if(tileX < 0 || tileX >= GRID_X || tileY < 0 || tileY >= GRID_Y)
+        return;
+    if(ctx->currentBlock == 2)
+    {
         TILE_MAP[ctx->flagPosY][ctx->flagPosX] = 0;
         ctx->flagPosX = tileX;
         ctx->flagPosY = tileY;
     }
-    if (ctx->flagPosX >= 0 && ctx->flagPosY >= 0 && ctx->currentBlock == 0 && TILE_MAP[tileY][tileX] == 2)
+    if(ctx->flagPosX >= 0 && ctx->flagPosY >= 0 && ctx->currentBlock == 0 && TILE_MAP[tileY][tileX] == 2)
     {
         ctx->flagPosX = -1;
         ctx->flagPosY = -1;
     }
     TILE_MAP[tileY][tileX] = currentBlock;
 }
-
