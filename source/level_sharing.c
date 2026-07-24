@@ -213,32 +213,38 @@ bool AccessPointSelectionMenu()
     while(!Wifi_LibraryModeReady())
         swiWaitForVBlank();
 
-    NF_WriteText(0, 0, 1, 0, "scanning");
-    NF_UpdateTextLayers();
+    for(int i = 0; i < 50; i++)
+    {
+        snprintf(debugBuf, sizeof(debugBuf), "scanning %d", i, );
+        NF_WriteText(0, 0, 1, 0, debugBuf);
+        NF_UpdateTextLayers();
 
-    Wifi_ScanMode();
+        Wifi_ScanMode();
 
-    for(int i = 0; i < 60; i++)
-        swiWaitForVBlank();
+        for(int i = 0; i < 120; i++)
+            swiWaitForVBlank();
 
-    int numAPs = Wifi_GetNumAP();
+        int numAPs = Wifi_GetNumAP();
 
-    snprintf(debugBuf, sizeof(debugBuf), "%d APs", numAPs);
-    NF_WriteText(0, 0, 1, 1, debugBuf);
-    NF_UpdateTextLayers();
+        snprintf(debugBuf, sizeof(debugBuf), "%d APs", numAPs);
+        NF_WriteText(0, 0, 1, 1, debugBuf);
+        NF_UpdateTextLayers();
 
-    if(numAPs <= 0)
-        return false;
+        if(numAPs > 0)
+        {
+            Wifi_AccessPoint ap;
+            Wifi_GetAPData(0, &ap);
+            AccessPoint = ap;
 
-    Wifi_AccessPoint ap;
-    Wifi_GetAPData(0, &ap);
-    AccessPoint = ap;
+            snprintf(debugBuf, sizeof(debugBuf), "'%s'", ap.ssid);
+            NF_WriteText(0, 0, 1, 2, debugBuf);
+            NF_UpdateTextLayers();
 
-    snprintf(debugBuf, sizeof(debugBuf), "'%s'", ap.ssid);
-    NF_WriteText(0, 0, 1, 2, debugBuf);
-    NF_UpdateTextLayers();
+            return true;
+        }
+    }
 
-    return true;
+    return false;
 }
 
 void ClientMode()
@@ -261,10 +267,10 @@ void ClientMode()
 
     if(!AccessPointSelectionMenu())
     {
-        NF_WriteText(0, 0, 1, 3, "no ap found");
-        NF_UpdateTextLayers();
-        state = EDITOR;
-        return;
+        //NF_WriteText(0, 0, 1, 3, "no ap found");
+        //NF_UpdateTextLayers();
+        //state = EDITOR;
+        //return;
     }
 
     Wifi_MultiplayerFromHostSetPacketHandler(FromHostPacketHandler);
