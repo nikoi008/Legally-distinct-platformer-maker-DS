@@ -126,7 +126,7 @@ void checkCollisionBtnsLvlLoadAndInputHandling(gameContext *ctx, int *position, 
         }
         if(checkCollision(touchRect, backToMenuBtn) || ctx->input->buttonsUp & KEY_B)
         {
-            state = EDITOR;
+            state = MAIN_MENU;
         }
         if(checkCollision(touchRect, loadLevelBtn) || ctx->input->buttonsUp & KEY_A)
         {

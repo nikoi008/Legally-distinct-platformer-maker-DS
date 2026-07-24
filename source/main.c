@@ -133,7 +133,8 @@ void mainMenuToLoadlevel(gameContext *ctx)
     fadeOut(3, 4);
     showMainMenu(false);
     lcdSwap();
-    NF_ClearTextLayer(0, 0);
+    showDirs(ctx);
+    //NF_ClearTextLayer(0, 0);
     NF_SpriteOamSet(0);
     NF_SpriteOamSet(1);
     swiWaitForVBlank();
@@ -143,10 +144,11 @@ void mainMenuToLoadlevel(gameContext *ctx)
     NF_UpdateTextLayers();
     oamUpdate(&oamMain);
     oamUpdate(&oamSub);
-    NF_ClearTextLayer(0, 0);
+   // NF_ClearTextLayer(0, 0);
+    NF_UpdateVramMap(0, 3);
     fadeIn(3, 2);
-   // setBrightness(2, -16);
     
+   // setBrightness(2, -16);
 }
 void mainmenuFrame(gameContext *ctx)
 {
@@ -166,6 +168,8 @@ void mainmenuFrame(gameContext *ctx)
         //if(checkCollision(touchRect,wifiBtnBounds)) //state = WIFI_PROMPT (menu with choice of recieve/send)
     }
 }
+
+
 int main(int argc, char **argv)
 {
     editorContext editor = {};
@@ -362,6 +366,8 @@ int main(int argc, char **argv)
                 if(state == EDITOR)
                 {
                     mainMenuToEditor(&ctx);
+                                           
+                        NF_CreateTiledBg(1,2,"grid");
                 }
 
                 if(state == LEVEL_LOAD)
@@ -478,7 +484,23 @@ int main(int argc, char **argv)
                         {
                             NF_SetTileOfMap(0, 3, x, y, 0);
                         }
+                    } 
+                    showEditor(true);
+                    NF_CreateTiledBg(1,2,"grid");
+                    //lcdSwap();
+                }
+
+                if(state == MAIN_MENU)
+                {
+                    for(int x = 0; x < 256 / 8; x++)
+                    {
+                        for(int y = 0; y < 256 / 8; y++)
+                        {
+                            NF_SetTileOfMap(0, 3, x, y, 0);
+                        }
                     }
+                    showMainMenu(true);
+                    lcdSwap();
                 }
 
                 break;
