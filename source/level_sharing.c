@@ -215,7 +215,7 @@ bool AccessPointSelectionMenu()
 
     for(int i = 0; i < 50; i++)
     {
-        snprintf(debugBuf, sizeof(debugBuf), "scanning %d", i, );
+        snprintf(debugBuf, sizeof(debugBuf), "scanning %d", i);
         NF_WriteText(0, 0, 1, 0, debugBuf);
         NF_UpdateTextLayers();
 
