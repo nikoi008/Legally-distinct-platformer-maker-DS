@@ -80,7 +80,7 @@ void hostMode()
 
         if(num_clients > 0)
         {
-            snprintf(debugBuf, sizeof(debugBuf), "%d client A", num_clients);
+            snprintf(debugBuf, sizeof(debugBuf), "%d PRESS A TO SEND", num_clients);
         }
         else
         {
@@ -94,7 +94,7 @@ void hostMode()
     }
     Wifi_MultiplayerAllowNewClients(false);
 
-    NF_WriteText(0, 0, 1, 3, "seding tiles");
+    NF_WriteText(0, 0, 1, 3, "sending tiles");
     NF_UpdateTextLayers();
 
     int sent = 0;
@@ -247,10 +247,17 @@ bool AccessPointSelectionMenu()
     return false;
 }
 
-void ClientMode()
+void clientWarning()
+{
+    NF_WriteText(0,0,1,6,"STILL IN DEVELOPMENT");
+    NF_WriteText(0,0,1,8, "LEVELS UP TO 10K TILES CAN BE");
+    NF_WriteText(0,0,1,9, "SENT");
+    NF_WriteText(0,0,1,11, "PRESS B OR THE SCREEN TO RETURN");
+    NF_WriteText(0,0,1,13, "IF STUCK AT CONNECTING GO BACK AND TRY AGAIN");
+}
+void ClientMode(gameContext *ctx)
 {
     char debugBuf[64];
-
     NF_ClearTextLayer(0, 0);
     levelDone = false;
     pendingBatchAck = -1;
@@ -264,15 +271,16 @@ void ClientMode()
             TILE_MAP[y][x] = AIR;
         }
     }
-
+    clientWarning();
     if(!AccessPointSelectionMenu())
     {
+        clientWarning();
         //NF_WriteText(0, 0, 1, 3, "no ap found");
         //NF_UpdateTextLayers();
         //state = EDITOR;
         //return;
     }
-
+    clientWarning();
     Wifi_MultiplayerFromHostSetPacketHandler(FromHostPacketHandler);
     NF_WriteText(0, 0, 1, 3, "connecting");
     NF_UpdateTextLayers();
@@ -281,13 +289,14 @@ void ClientMode()
 
     while(1)
     {
+        clientWarning();
         swiWaitForVBlank();
         int status = Wifi_AssocStatus();
 
         if(status == ASSOCSTATUS_ASSOCIATED)
             break;
 
-        if(status == ASSOCSTATUS_CANNOTCONNECT)
+        if(status == ASSOCSTATUS_CANNOTCONNECT || ctx->input->buttonsDown & KEY_TOUCH || ctx->input->buttonsDown & KEY_B)
         {
             NF_WriteText(0, 0, 1, 4, "cannot connect");
             NF_UpdateTextLayers();
@@ -304,7 +313,7 @@ void ClientMode()
     while(!levelDone)
     {
         swiWaitForVBlank();
-
+        clientWarning();
         if(pendingBatchAck != -1)
         {
             batchAckPacket ack;
@@ -319,7 +328,7 @@ void ClientMode()
             {
                 received += pendingBatchCount;
                 snprintf(debugBuf, sizeof(debugBuf), "recieved %d got %d", pendingBatchAck, received);
-                NF_WriteText(0, 0, 1, 8, debugBuf);
+                NF_WriteText(0, 0, 1, 5, debugBuf);
                 NF_UpdateTextLayers();
             }
 
@@ -330,7 +339,7 @@ void ClientMode()
     }
 
     snprintf(debugBuf, sizeof(debugBuf), "done%d tiles", received);
-    NF_WriteText(0, 0, 1, 6, debugBuf);
+    NF_WriteText(0, 0, 1, 2, debugBuf);
     NF_UpdateTextLayers();
 
     Wifi_DisconnectAP();
