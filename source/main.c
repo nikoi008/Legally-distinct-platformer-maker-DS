@@ -86,6 +86,8 @@ void mainMenuToEditor(gameContext *ctx)
     NF_SpriteOamSet(0);
     NF_SpriteOamSet(1);
     swiWaitForVBlank();
+    NF_ShowBg(1,2);
+    NF_CreateTiledBg(1, 2, "grid");
     NF_UpdateVramMap(1, 3);
     // NF_UpdateVramMap(1, 2);
     NF_ScrollBg(1, 3, ctx->coords->scrollX, ctx->coords->scrollY);
@@ -356,10 +358,6 @@ int main(int argc, char **argv)
         ctx.input->buttonsDown = keysDown();
         ctx.input->buttonsHeld = keysHeld();
         ctx.input->buttonsUp = keysUp();
-        if(ctx.input->buttonsUp & KEY_A)
-        {
-            state = SHARE_LEVEL_HOST;
-        }
         switch(state)
         {
             case MAIN_MENU:
@@ -371,7 +369,7 @@ int main(int argc, char **argv)
                 {
                     mainMenuToEditor(&ctx);
                                            
-                    NF_CreateTiledBg(1, 2, "grid");
+
                 }
 
                 if(state == LEVEL_LOAD)
@@ -499,6 +497,7 @@ int main(int argc, char **argv)
                             NF_SetTileOfMap(0, 3, x, y, 0);
                         }
                     } 
+
                 
                     //lcdSwap();
                     NF_SpriteOamSet(0);
@@ -564,16 +563,6 @@ int main(int argc, char **argv)
                 NF_HideBg(1,3);
                 NF_HideBg(0,1);
                 NF_HideBg(1,1);
-                NF_SpriteOamSet(0);
-                NF_SpriteOamSet(1);
-                swiWaitForVBlank();
-                NF_UpdateVramMap(1, 3);
-                NF_UpdateVramMap(0, 3);
-                NF_ScrollBg(1, 3, coords.scrollX, coords.scrollY);
-                NF_ScrollBg(1, 2, coords.cameraX % 16, coords.cameraY % 16);
-                NF_UpdateTextLayers();
-                oamUpdate(&oamMain);
-                oamUpdate(&oamSub);
                 //NF_CreateTiledBg(1,2,"grid");
                 ClientMode(&ctx);
                 if(state == EDITOR)
