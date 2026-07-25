@@ -30,6 +30,7 @@ Here is a visual example of how to sync the virtual SD card to a folder ![](imag
 ## How to test local level sharing
 You must go to System->Multiplayer->Launch new instance, and open the rom again on the window titled [p2]
 Here is a visual example of how to launch the instance ![](images/sharing.png) 
+> Please keep in mind that the level sharing is still in a very early state, with support of a maximum of less than 10 thousand tiles sent
 
 # Libraries used
 This project is entirely written in C using [blocksDS](https://github.com/blocksds/sdk) as the main development library, which contains [DSWifi](https://github.com/blocksds/dswifi), the wifi library I used, and [NFLib](https://github.com/knightfox75/nds_nflib) (NightFox's Lib) as the graphics library
