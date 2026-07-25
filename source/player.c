@@ -90,6 +90,7 @@ void yCollision(gameContext *ctx)
 void playerPhysics(gameContext *ctx)
 {
 
+    NF_WriteText(0,0,1,1,"press here to return to editor");
     ctx->player->velocityX = 0;
 
     if(ctx->input->buttonsHeld & KEY_LEFT || ctx->input->buttonsHeld & KEY_RIGHT)

@@ -78,7 +78,7 @@ void mainMenuToEditor(gameContext *ctx)
     updateOrigin(ctx);
     showMainMenu(false);
     state = EDITOR;
-    debugText(ctx);
+    //debugText(ctx);
     NF_ShowSprite(1, 5, false);
     NF_ShowSprite(1, 0, true);
     editorFrame(ctx);
@@ -378,7 +378,7 @@ int main(int argc, char **argv)
                 }
                 break;
             case EDITOR:
-                debugText(&ctx);
+                //debugText(&ctx);
                 NF_ShowSprite(1, 5, false);
                 NF_ShowSprite(1, 0, true);
                 editorFrame(&ctx);
@@ -471,19 +471,33 @@ int main(int argc, char **argv)
                         ctx.input->keyboardOn = false;
                         word[0] = '\0';
                         state = EDITOR;
+
+
+
                     }
                 }
                 NF_WriteText(0, 0, 0, 14, word);
+
+                if(state == EDITOR)
+                {
+                    NF_SpriteOamSet(0);
+                    NF_SpriteOamSet(1);
+                    scrollLogic(&ctx);
+                    updateTiles(&ctx);
+                    updateOrigin(&ctx);
+                    swiWaitForVBlank();
+                    NF_UpdateVramMap(1, 3);
+                    NF_UpdateVramMap(0, 3);
+                    NF_ScrollBg(1, 3, coords.scrollX, coords.scrollY);
+                    NF_ScrollBg(1, 2, coords.cameraX % 16, coords.cameraY % 16);
+                    NF_UpdateTextLayers();
+                    oamUpdate(&oamMain);
+                    oamUpdate(&oamSub);
+                    //fadeIn(3,2);
+                }
                 break;
 
             case LEVEL_LOAD:
-                for(int i = 0; i < 512 / 8; i++)
-                {
-                    for(int j = 0; j < 512 / 8; j++)
-                    {
-                        NF_SetTileOfMap(1, TILE_LAYER, i, j, 0);
-                    }
-                }
                 showDirs(&ctx);
                 
                 if(state == EDITOR)

@@ -101,7 +101,7 @@ void playScreenToEditor(gameContext *ctx)
     updateTiles(ctx);
     updateOrigin(ctx);
     state = EDITOR;
-    debugText(ctx);
+    //debugText(ctx);
     NF_ShowSprite(1, 5, false);
     NF_ShowSprite(1, 0, true);
     editorFrame(ctx);
