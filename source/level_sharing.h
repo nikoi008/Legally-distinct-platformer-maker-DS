@@ -41,7 +41,7 @@ void FromHostPacketHandler(Wifi_MPPacketType type, int base, int len);
 
 void hostMode();
 
-bool AccessPointSelectionMenu();
+bool AccessPointSelectionMenu(gameContext *ctx);
 
 void ClientMode(gameContext *ctx);
 

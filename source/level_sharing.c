@@ -7,6 +7,8 @@ volatile int pendingBatchCount = 0;
 volatile bool pendingBatchEnd = false;
 bool levelDone = false;
 
+#define ANY_BUTTON (KEY_B | KEY_A | KEY_X | KEY_Y | KEY_R | KEY_L | KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)
+
 void sendTiles(tileBatchPacket *batch)
 {
     Wifi_MultiplayerHostCmdTxFrame(batch, sizeof(tileBatchPacket));
@@ -248,7 +250,7 @@ client_lost:
     state = EDITOR;
 }
 
-bool AccessPointSelectionMenu()
+bool AccessPointSelectionMenu(gameContext *ctx)
 {
     char debugBuf[64];
     u16 buttonsDown;
@@ -267,8 +269,10 @@ bool AccessPointSelectionMenu()
     {
         scanKeys();
         buttonsDown = keysDown();
-        if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        if(buttonsDown & ANY_BUTTON)
         {
+            Wifi_DisconnectAP();
+            Wifi_IdleMode();
             state = MAIN_MENU;
             return false;
         }
@@ -284,8 +288,11 @@ bool AccessPointSelectionMenu()
             swiWaitForVBlank();
             scanKeys();
             buttonsDown = keysDown();
-            if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+            if(buttonsDown & ANY_BUTTON){
+                Wifi_DisconnectAP();
+                Wifi_IdleMode();
                 return false;
+            }
         }
 
         int numAPs = Wifi_GetNumAP();
@@ -316,7 +323,7 @@ void clientWarning()
     NF_WriteText(0,0,1,6,"STILL IN DEVELOPMENT");
     NF_WriteText(0,0,1,8, "LEVELS UP TO 10K TILES CAN BE");
     NF_WriteText(0,0,1,9, "SENT");
-    NF_WriteText(0,0,1,11, "PRESS B OR THE SCREEN TO RETURN");
+    NF_WriteText(0,0,1,11, "PRESS ANY BUTTON TO RETURN");
     NF_WriteText(0,0,1,13, "IF STUCK AT CONNECTING GO BACK AND TRY AGAIN");
 }
 void ClientMode(gameContext *ctx)
@@ -337,7 +344,7 @@ void ClientMode(gameContext *ctx)
         }
     }
     clientWarning();
-    if(!AccessPointSelectionMenu())
+    if(!AccessPointSelectionMenu(ctx))
     {
         clientWarning();
         state = MAIN_MENU;
@@ -361,8 +368,10 @@ void ClientMode(gameContext *ctx)
         if(status == ASSOCSTATUS_ASSOCIATED)
             break;
 
-        if(status == ASSOCSTATUS_CANNOTCONNECT || buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        if(status == ASSOCSTATUS_CANNOTCONNECT || buttonsDown & ANY_BUTTON)
         {
+            Wifi_DisconnectAP();
+            Wifi_IdleMode();
             NF_WriteText(0, 0, 1, 4, "cannot connect");
             NF_UpdateTextLayers();
             state = MAIN_MENU;
@@ -382,7 +391,7 @@ void ClientMode(gameContext *ctx)
         scanKeys();
         buttonsDown = keysDown();
 
-        if(buttonsDown & KEY_B||buttonsDown & KEY_TOUCH)
+        if(buttonsDown & ANY_BUTTON)
         {
             Wifi_DisconnectAP();
             Wifi_IdleMode();
