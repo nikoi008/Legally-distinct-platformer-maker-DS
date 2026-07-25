@@ -10,7 +10,48 @@
 #include <string.h>
 
 #include "player.h"
+char *blockNames[TOTAL_BLOCKS] = {
+    "Delete",
+    "Dirt",
+    "Flag",
+    "Spike",
+    "End Flag"
+};
 
+char *blockInfo[TOTAL_BLOCKS] = {
+    "Turns block into air",
+    "A regular solid block",
+    "Player spawns here",
+    "Kills the player",
+    "Ends the level and goes back to editor"
+};
+
+
+void displayCurrentlySelected(gameContext *ctx)
+{
+    int block = ctx->editor->currentBlock;
+
+    NF_WriteText(0, 0, 1, 1, "                             ");
+    NF_WriteText(0, 0, 1, 3, "                                    ");
+    NF_WriteText(0, 0, 1, 5, "                                ");
+    NF_WriteText(0, 0, 1, 7, "                                    ");
+
+    char name[32];
+    sprintf(name, "Block: %s", blockNames[block]);
+    NF_WriteText(0, 0, 1, 1, name);
+
+    char solid[32];
+    sprintf(solid, "Solid: %s", blocks[block].solid ? "Yes" : "No");
+    NF_WriteText(0, 0, 1, 3, solid);
+
+    char touchtile[32];
+    sprintf(touchtile, "Tile: %d, %d", ctx->input->touchTileX, ctx->input->touchTileY);
+    NF_WriteText(0, 0, 1, 5, touchtile);
+
+    NF_WriteText(0, 0, 1, 7, blockInfo[block]);
+
+    NF_UpdateTextLayers();
+}
 void rectangleFillPreview(gameContext *ctx)
 { // causes huge lag when rectangles are large.. todo optimise??
     touchRead(
@@ -117,17 +158,38 @@ void editorInputKeys(gameContext *ctx)
         ctx->coords->cameraY += SPEED;
     }
 }
+static int errorFlagFramesLeft = 0;
 
+void triggerErrorFlag(void)
+{
+    errorFlagFramesLeft = 120;
+}
+
+void displayErrorFlag(void)
+{
+    if(errorFlagFramesLeft > 0)
+    {
+        NF_WriteText(0, 0, 2, 22, "ERROR START FLAG NOT PRESENT");
+        errorFlagFramesLeft--;
+    }
+    else
+    {
+        NF_WriteText(0, 0, 2, 22, "                      ");
+    }
+
+    NF_UpdateTextLayers();
+}
 void editorFrame(gameContext *ctx)
 {
 
+    displayErrorFlag();
     static const rectangle rectFillBounds = {30, 173, 16, 16};
     static const rectangle backToMainBounds = {10, 173, 16, 16};
     static const rectangle saveLevelBtnBounds = {50, 173, 16, 16};
     static const rectangle changePalBtnBounds = {70, 173, 16, 16};
     static const rectangle playBtnBounds = {214, 173, 32, 16};
     static const rectangle sharlvlBounds = {90,173,16,16};
-
+    displayCurrentlySelected(ctx);
     if(!ctx->input->keyboardOn)
     {
         editorInputKeys(ctx);
@@ -222,7 +284,14 @@ void editorFrame(gameContext *ctx)
 
         if(ctx->input->buttonsDown & KEY_TOUCH && checkCollision(playBtnBounds, touchPosRect))
         {
-            state = PLAY_SCREEN;
+            if(ctx->editor->flagPosX != -1 && ctx->editor->flagPosY != -1)
+            {
+                state = PLAY_SCREEN;
+            }
+            else 
+            {
+                triggerErrorFlag();
+            }
         }
         if(ctx->input->buttonsDown & KEY_TOUCH && checkCollision(sharlvlBounds,touchPosRect))
         {
